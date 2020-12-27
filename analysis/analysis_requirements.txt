@@ -1,0 +1,5 @@
+joblib==1.0.0
+numpy
+pandas
+openpyxl
+sas7bdat
