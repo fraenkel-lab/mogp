@@ -1,6 +1,7 @@
 # Project Directories
 analysis/data
 mogpvenv
+example/test
 
 .DS_Store
 
