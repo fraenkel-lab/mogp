@@ -13,7 +13,7 @@ setup(
         'GPy>=1.9.8',
         'scipy>=1.3.0',
         'numpy>=1.16.4',
-        'scikit-learn>=0.21.2',
+        'scikit-learn==0.21.1',
         'sklearn>=0.0',
         'matplotlib>=3.1.1'],
 
