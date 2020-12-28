@@ -1,5 +1,8 @@
 joblib==1.0.0
-numpy
-pandas
-openpyxl
-sas7bdat
+numpy==1.19.4
+pandas==1.2.0
+openpyxl==3.0.5
+sas7bdat==2.2.3
+seaborn==0.11.1
+statannot==0.2.3
+lifelines==0.25.7
