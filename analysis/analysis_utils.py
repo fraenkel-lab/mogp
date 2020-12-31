@@ -52,11 +52,12 @@ def calc_error(y_real, y_pred):
 def calc_slope_mogp_data(data):
     """Calculate average slope of each patient from data dictionary (exclude onset anchor)"""
     XA = data['XA'][:, 1:]  # Exclude anchor oonset
-    YA_nonorm = (data['YA'][:, 1:] * data['Y_std']) + data['Y_mean']  # Scale data to original
+    # YA_nonorm = (data['YA'][:, 1:] * data['Y_std']) + data['Y_mean']  # Scale data to original
+    YA = data['YA'][:, 1:]
 
     df_slope = pd.DataFrame(columns=['SI', 'slope'])
     for i, si in enumerate(data['SI']):
-        slope_i, intercept_i = linreg_fxn(XA[i], YA_nonorm[i])
+        slope_i, intercept_i = linreg_fxn(XA[i], YA[i])
         slope_i_ppm = slope_i / 12  # Calculate in points per month (x values currently in years)
         df_slope = df_slope.append({'SI': si, 'slope': slope_i_ppm}, ignore_index=True)
     df_slope.set_index('SI', inplace=True)
@@ -72,22 +73,43 @@ def calc_clust_slope(model, data):
     df_slope_clust = pd.DataFrame(df_slope_clust.groupby('cluster')['slope'].mean())
     return df_slope_clust
 
+def check_model_monotonicity(model, thresh=10, window=1, num_obs=10):
+    """uses sliding windows to check if score jump greater than threshold occurs"""
+    nc = len(np.where(model.allocmodel.Nk > 0)[0])
+    idx = np.argsort(-model.allocmodel.Nk)[0:nc]
+    for i, k in enumerate(idx[:num_obs]):
+        obs = model.obsmodel[k]
+        min_point = np.min(obs.X)
+        max_point = min_point + window
+        while (min_point + window) < np.max(obs.X):
+            y_pred_mean, _ = obs.model.predict(np.array([min_point, min_point + window]).reshape(-1,1))
+            if (y_pred_mean[1]-y_pred_mean[0])>thresh:
+                # obs.model.plot()        
+                return False
+            min_point += 0.1
+    else:
+        return True
 
-def get_map_model(mod_path, mod_suffix, num_seeds=5):
+def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10):
     """Select best MAP model from 5 seeds"""
-    best_model_seed = []
-    best_model = []
+    best_model_seed = None
+    best_model = None
     best_ll = -1e12
     for seed in range(num_seeds):
         try:
             model = joblib.load(mod_path / '{}_seed_{}_MAP.pkl'.format(mod_suffix, seed))
-            if model.best_ll > best_ll:
-                best_ll = model.best_ll
-                best_model_seed = seed
-                best_model = model
-
+            monot = check_model_monotonicity(model=model, thresh=thresh)
+            if monot is True:
+                if model.best_ll > best_ll:
+                    best_ll = model.best_ll
+                    best_model_seed = seed
+                    best_model = model
+            else:
+                print('seed did not pass monotonicity test: {}'.format(seed))
         except FileNotFoundError:
             print('Seed not found: {}'.format(mod_path / '{}_seed_{}_MAP.pkl'.format(mod_suffix, seed)))
+    if best_model == None:
+        print('No models passed monotonicity test - check threshold: {}'.format(thresh))
     print('best seed: {}, ll {}'.format(best_model_seed, best_ll))
     return best_model
 
@@ -159,16 +181,19 @@ def plot_largest_mogp_clusters(ax, model, data, disp_clust, color_palette, data_
     return ax
 
 
-# def format_mogp_axs(ax, data, max_x=8, x_step=2.0, y_label=(0, 24, 48), y_minmax_norm=(-5, 53)):
-#     y_ticks = [(y - data['Y_mean']) / data['Y_std'] for y in y_label]
-#     y_minmax = [(y - data['Y_mean']) / data['Y_std'] for y in y_minmax_norm]
+def format_mogp_axs(ax, data, max_x=8, x_step=2.0, y_label=(0, 24, 48), y_minmax_norm=(-5, 53)):
+    # y_ticks = [(y - data['Y_mean']) / data['Y_std'] for y in y_label]
+    # y_minmax = [(y - data['Y_mean']) / data['Y_std'] for y in y_minmax_norm]
 
-#     ax.set_xlim([0, max_x])
-#     ax.set_xticks(np.arange(0, max_x + 1, x_step))
-#     ax.set_yticks(y_ticks)
-#     ax.set_yticklabels(y_label)
-#     ax.set_ylim(y_minmax[0], y_minmax[1])
-#     return ax
+    ax.set_xlim([0, max_x])
+    ax.set_xticks(np.arange(0, max_x + 1, x_step))
+    # ax.set_yticks(y_ticks)
+    # ax.set_yticklabels(y_label)
+    # ax.set_ylim(y_minmax[0], y_minmax[1])
+    ax.set_yticks([0,24,48])
+    ax.set_ylim(-5, 53)
+
+    return ax
 
 
 def format_panel_axs(ax, data, alph_lab, num_pat, k_alph_flag, fontsize_numpat=20, fontsize_alph=25):

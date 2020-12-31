@@ -146,7 +146,7 @@ def get_subscore_norm(model_data_path, project, minnum):
     Y_all = np.empty([1,1])
     for cur_task in ['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp']:
         cur_data = joblib.load(model_data_path / 'data_{}_{}_{}.pkl'.format(project, minnum, cur_task))
-        print(np.mean(cur_data['YA'][~np.isnan(cur_data['YA'])]))
+        # print(np.mean(cur_data['YA'][~np.isnan(cur_data['YA'])]))
         Y_all = np.append(Y_all, cur_data['YA'])
     Y_mean = np.mean(Y_all[~np.isnan(Y_all)])
     Y_std = np.std(Y_all[~np.isnan(Y_all)])
@@ -199,11 +199,11 @@ if __name__ == '__main__':
         alsfrst_predict(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds, multiprocess=args.multi)
 
     elif args.exp == 'sparse':
-        alsfrst_sparsity(project=args.project, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds, multiprocess=args.multi)
+        alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds, multiprocess=args.multi)
 
     elif args.exp == 'ref':
-        reference(project=args.prooject, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.num_splits,
-                  run_by_seed=args.run_by_seed, seed=args.esed, multiprocess=args.mult)
+        reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,
+                  run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
     elif args.exp == 'alt':
         alternate_outcomes(task=args.task, seed=args.seed, num_iter=args.num_iter, norm_consistent=args.norm_consistent)
 
