@@ -18,7 +18,7 @@ def incl_crit(data, subj_col, delta_col, min_data=3, jump_size=6, jump_col='alsf
     return data
 
 
-def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48., rand_seed=0):
+def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48.):
     """Convert pandas dataframe to data dictionary for MoGP input, including adding onset anchor datapoint"""
     data_dict = {}
 
@@ -31,7 +31,6 @@ def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48.,
     Y_std = Y_df.stack().std()
 
     # Add onset anchor value at symptom onset
-    np.random.seed(rand_seed)
     X_df.insert(0, 0.0, 0.)
     Y_df.insert(0, 0.0, max_feat * np.ones(data[subj_col].nunique()))
 
@@ -210,6 +209,7 @@ def data_alt_outcomes(df_time_merge, df_time_fvc, exp_path):
     """Experiment: Alternate Outcomes"""
     Path.mkdir(exp_path, parents=True, exist_ok=True)
     proj = 'proact'
+    min_subscore_thresh = 11
 
     # PROACT - forced vital capacity (maximum value)
     proj_dict = process_data_mogp_pandas(df_time_fvc.copy(), 'fvcp_max', 'subj_proj_id', 'Visit_Date',
@@ -220,8 +220,17 @@ def data_alt_outcomes(df_time_merge, df_time_fvc, exp_path):
     df_time_proj = df_time_merge[df_time_merge['dataset'] == proj].copy()
     df_time_proact_alsfrsr = incl_crit(df_time_proj, 'subj_proj_id', 'Visit_Date', min_data=3, jump_size=6, max_year_onset=7)
     for cat in ['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp']:
-        cur_dict_pandas = process_data_mogp_pre_norm(df_time_proact_alsfrsr.copy(), cat, 'subj_proj_id', 'Visit_Date', max_feat=12.)
-        joblib.dump(cur_dict_pandas, exp_path / 'data_{}_min3_{}.pkl'.format(proj, cat))
+        # Remove patients with minimally changing score (flat trajectories)
+        pat_div = df_time_proact_alsfrsr.groupby('subj_proj_id')[cat].min() < min_subscore_thresh
+        df_time_proact_alsfrsr_change = df_time_proact_alsfrsr[df_time_proact_alsfrsr['subj_proj_id'].isin(pat_div[pat_div].index)]
+        df_time_proact_alsfrsr_nochange = df_time_proact_alsfrsr[~df_time_proact_alsfrsr['subj_proj_id'].isin(pat_div[pat_div].index)]
+
+        cur_dict_pandas_change = process_data_mogp_pre_norm(df_time_proact_alsfrsr_change.copy(), cat, 'subj_proj_id', 'Visit_Date', max_feat=12.)
+        cur_dict_pandas_nochange = process_data_mogp_pre_norm(df_time_proact_alsfrsr_nochange.copy(), cat, 'subj_proj_id', 'Visit_Date', max_feat=12.)
+
+        # Save
+        joblib.dump(cur_dict_pandas_change, exp_path / 'data_{}_min3_{}.pkl'.format(proj, cat))
+        joblib.dump(cur_dict_pandas_nochange, exp_path / 'data_{}_min3_{}_nochange.pkl'.format(proj, cat))
 
 
 if __name__ == '__main__':

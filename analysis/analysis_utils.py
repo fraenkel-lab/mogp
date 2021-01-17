@@ -1,3 +1,5 @@
+from model_postprocessing import check_model_monotonicity, split_nonmonotonic_clusters
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -73,24 +75,8 @@ def calc_clust_slope(model, data):
     df_slope_clust = pd.DataFrame(df_slope_clust.groupby('cluster')['slope'].mean())
     return df_slope_clust
 
-def check_model_monotonicity(model, thresh=10, window=1, num_obs=10):
-    """uses sliding windows to check if score jump greater than threshold occurs"""
-    nc = len(np.where(model.allocmodel.Nk > 0)[0])
-    idx = np.argsort(-model.allocmodel.Nk)[0:nc]
-    for i, k in enumerate(idx[:num_obs]):
-        obs = model.obsmodel[k]
-        min_point = np.min(obs.X)
-        max_point = min_point + window
-        while (min_point + window) < np.max(obs.X):
-            y_pred_mean, _ = obs.model.predict(np.array([min_point, min_point + window]).reshape(-1,1))
-            if (y_pred_mean[1]-y_pred_mean[0])>thresh:
-                # obs.model.plot()        
-                return False
-            min_point += 0.1
-    else:
-        return True
 
-def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10):
+def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10, num_obs=20):
     """Select best MAP model from 5 seeds"""
     best_model_seed = None
     best_model = None
@@ -98,7 +84,7 @@ def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10):
     for seed in range(num_seeds):
         try:
             model = joblib.load(mod_path / '{}_seed_{}_MAP.pkl'.format(mod_suffix, seed))
-            monot = check_model_monotonicity(model=model, thresh=thresh)
+            monot = check_model_monotonicity(model=model, thresh=thresh, num_obs=num_obs)
             if monot is True:
                 if model.best_ll > best_ll:
                     best_ll = model.best_ll
@@ -110,6 +96,9 @@ def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10):
             print('Seed not found: {}'.format(mod_path / '{}_seed_{}_MAP.pkl'.format(mod_suffix, seed)))
     if best_model == None:
         print('No models passed monotonicity test - check threshold: {}'.format(thresh))
+    else:
+        while check_model_monotonicity(best_model, num_obs=None) is False:
+            split_nonmonotonic_clusters(best_model)
     print('best seed: {}, ll {}'.format(best_model_seed, best_ll))
     return best_model
 
@@ -131,7 +120,7 @@ class ModelSum:
 ###########################################################################
 
 
-def plot_mogp_by_clust(ax, model, data, k, data_flag=True, data_col='k', model_flag=True, model_col='b', model_alpha=0.2):
+def plot_mogp_by_clust(ax, model, data, k, data_flag=True, data_col='k', model_flag=True, model_col='b', model_alpha=0.2, gpy_pad=0.5):
     """Plot MoGP trajectory and data for individual cluster"""
     num_pat = 'n = {}'.format(model.allocmodel.Nk[k])
     if data_flag:
@@ -140,13 +129,13 @@ def plot_mogp_by_clust(ax, model, data, k, data_flag=True, data_col='k', model_f
         YR = data['YA']
         ax.plot(XR[model.z == k].T[1:], YR[model.z == k].T[1:], 'o-', color=data_col, alpha=0.75)
     if model_flag:
-        gpy_plt_xlim = model.obsmodel[k].X.max()
+        gpy_plt_xlim = model.obsmodel[k].X.max()+gpy_pad
         model.obsmodel[k].model.plot_mean(color=model_col, ax=ax, label=num_pat, plot_limits=[0, gpy_plt_xlim])
         model.obsmodel[k].model.plot_confidence(color=model_col, ax=ax, label='_nolegend_', alpha=model_alpha, plot_limits=[0, gpy_plt_xlim])
     return ax, num_pat
 
 
-def plot_slope_by_clust(ax, model, data, k, lower_bound=0, upper_bound=1, estimate_x_val=3, slope_col='r'):
+def plot_slope_by_clust(ax, model, k, lower_bound=0, upper_bound=1, estimate_x_val=3, slope_col='r'):
     """
     Calculate slope of MoGP trajectory between lower and upper bounds (default 0 to 1 years)
     Estimate difference between MoGP curve and calculated slope at the timepoint specified (estimate_x_val)
@@ -166,7 +155,7 @@ def plot_slope_by_clust(ax, model, data, k, lower_bound=0, upper_bound=1, estima
     # Estimate difference between slope prediction and MoGP at estimate_x_val years
     mogp_estim = model.obsmodel[k].model.predict(np.array([estimate_x_val]).reshape(-1, 1))[0][0][0]
     slope_estim = (intercept + slope * estimate_x_val)
-    estim_diff = (mogp_estim - slope_estim) * data['Y_std']
+    estim_diff = (mogp_estim - slope_estim)
 
     return estim_diff
 
@@ -181,24 +170,18 @@ def plot_largest_mogp_clusters(ax, model, data, disp_clust, color_palette, data_
     return ax
 
 
-def format_mogp_axs(ax, data, max_x=8, x_step=2.0, y_label=(0, 24, 48), y_minmax_norm=(-5, 53)):
-    # y_ticks = [(y - data['Y_mean']) / data['Y_std'] for y in y_label]
-    # y_minmax = [(y - data['Y_mean']) / data['Y_std'] for y in y_minmax_norm]
-
+def format_mogp_axs(ax, max_x=8, x_step=2.0):
     ax.set_xlim([0, max_x])
     ax.set_xticks(np.arange(0, max_x + 1, x_step))
-    # ax.set_yticks(y_ticks)
-    # ax.set_yticklabels(y_label)
-    # ax.set_ylim(y_minmax[0], y_minmax[1])
     ax.set_yticks([0,24,48])
     ax.set_ylim(-5, 53)
 
     return ax
 
 
-def format_panel_axs(ax, data, alph_lab, num_pat, k_alph_flag, fontsize_numpat=20, fontsize_alph=25):
+def format_panel_axs(ax, alph_lab, num_pat, k_alph_flag, fontsize_numpat=20, fontsize_alph=25):
     """Scale axes to original data, label with number of patients per cluster"""
-    ax = format_mogp_axs(ax, data, max_x=8)
+    ax = format_mogp_axs(ax, max_x=8)
 
     ax.get_legend().remove()
     ax.text(0.02, 0.02, num_pat, transform=ax.transAxes, va='bottom', ha='left', fontsize=fontsize_numpat)

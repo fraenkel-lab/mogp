@@ -119,6 +119,7 @@ def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5,  multiprocess=F
             curexp.seed = cur_seed
             curexp.run_experiment()
 
+
 def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=False, seed=None, multiprocess=False):
     """Run MoGP for reference model benchmarking"""
     model_data_path = Path('data/model_data/3_reference_transfer')
@@ -141,6 +142,7 @@ def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=Fals
                 curexp.seed = cur_seed
                 curexp.run_experiment()
 
+
 def get_subscore_norm(model_data_path, project, minnum):
     """Normalize all alsfrs-r subscores with same norm factor"""
     Y_all = np.empty([1,1])
@@ -153,7 +155,8 @@ def get_subscore_norm(model_data_path, project, minnum):
 
     return Y_mean, Y_std
 
-def alternate_outcomes(task, seed, num_iter=100, norm_consistent=False):
+
+def alternate_outcomes(task, num_iter=100, run_by_seed=False, seed=None, num_seeds=5, norm_consistent=False):
     """Run MoGP for alternate outcomes: ALSFRS-R Subscores and Forced Vital Capacity
         Tasks: alsfrst_bulb, alsfrst_fine, alsfrst_gross, alsfrst_resp, fvcpmax
     """
@@ -163,7 +166,7 @@ def alternate_outcomes(task, seed, num_iter=100, norm_consistent=False):
     kernel = 'rbf'
     expname = task
 
-    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname, num_iter=num_iter, seed=seed, kernel=kernel)
+    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname, num_iter=num_iter, kernel=kernel)
 
     if norm_consistent:
         # Normalize all alsfrs-r scores to same ymean/ystd
@@ -173,7 +176,13 @@ def alternate_outcomes(task, seed, num_iter=100, norm_consistent=False):
         curexp.Y_mean = subsc_mean
         curexp.Y_std = subsc_std
 
-    curexp.run_experiment()
+    if run_by_seed:
+        assert (seed is not None)
+        curexp.seed = seed
+    else:
+        for cur_seed in range(0, num_seeds):
+            curexp.seed = cur_seed
+            curexp.run_experiment()
 
 
 parser = argparse.ArgumentParser()
@@ -185,7 +194,7 @@ parser.add_argument("--num_seeds", type=int, default=5)
 parser.add_argument("--run_by_seed", default=False)
 parser.add_argument("--seed", type=int, default=None)
 parser.add_argument("--multi", type=bool, default=False, choices=[True, False])
-parser.add_argument("--numsplit", type=int, default=None)
+parser.add_argument("--numsplit", type=int, default=5)
 parser.add_argument("--task", default=None, choices=['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp', 'fvcpmax'])
 parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True, False])
 
@@ -205,6 +214,5 @@ if __name__ == '__main__':
         reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,
                   run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
     elif args.exp == 'alt':
-        alternate_outcomes(task=args.task, seed=args.seed, num_iter=args.num_iter, norm_consistent=args.norm_consistent)
-
-    alternate_outcomes
+        alternate_outcomes(task=args.task, num_iter=args.num_iter, run_by_seed=args.run_by_seed, seed=args.seed,
+                           num_seeds=args.num_seeds, norm_consistent=args.norm_consistent)
