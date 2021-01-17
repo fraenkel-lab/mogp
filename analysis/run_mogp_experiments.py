@@ -179,6 +179,7 @@ def alternate_outcomes(task, num_iter=100, run_by_seed=False, seed=None, num_see
     if run_by_seed:
         assert (seed is not None)
         curexp.seed = seed
+        curexp.run_experiment()
     else:
         for cur_seed in range(0, num_seeds):
             curexp.seed = cur_seed
