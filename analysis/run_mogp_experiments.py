@@ -88,7 +88,7 @@ def full_alsfrst(project, num_iter=100, num_seeds=5, run_by_seed=False, seed=Non
                 curexp.run_experiment()
 
 
-def alsfrst_predict(project, kernel, num_iter=100, num_seeds=5, multiprocess=False):
+def alsfrst_predict(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/prediction')
@@ -97,14 +97,21 @@ def alsfrst_predict(project, kernel, num_iter=100, num_seeds=5, multiprocess=Fal
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess)
 
-    for cur_seed in range(0, num_seeds):
+    if run_by_seed:
+        assert (seed is not None)
         for task in task_list:
             curexp.expname = 'predict_{}'.format(task)
-            curexp.seed = cur_seed
+            curexp.seed = seed
             curexp.run_experiment()
+    else:
+        for cur_seed in range(0, num_seeds):
+            for task in task_list:
+                curexp.expname = 'predict_{}'.format(task)
+                curexp.seed = cur_seed
+                curexp.run_experiment()
 
 
-def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5,  multiprocess=False):
+def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/sparsity')
@@ -113,11 +120,19 @@ def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5,  multiprocess=F
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess)
 
-    for cur_seed in range(0, num_seeds):
+    if run_by_seed:
+        assert (seed is not None)
         for task in task_list:
             curexp.expname = 'sparse_{}'.format(task)
-            curexp.seed = cur_seed
+            curexp.seed = seed
             curexp.run_experiment()
+
+    else:
+        for cur_seed in range(0, num_seeds):
+            for task in task_list:
+                curexp.expname = 'sparse_{}'.format(task)
+                curexp.seed = cur_seed
+                curexp.run_experiment()
 
 
 def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=False, seed=None, multiprocess=False):
@@ -202,18 +217,23 @@ parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True,
 
 if __name__ == '__main__':
     args = parser.parse_args()
+
     if args.exp == 'full':
         full_alsfrst(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds,
                      run_by_seed=args.run_by_seed, seed=args.seed, kernel=args.kernel, multiprocess=args.multi)
+
     elif args.exp == 'predict':
-        alsfrst_predict(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds, multiprocess=args.multi)
+        alsfrst_predict(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds,
+                        run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
 
     elif args.exp == 'sparse':
-        alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds, multiprocess=args.multi)
+        alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds,
+                         run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
 
     elif args.exp == 'ref':
         reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,
                   run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
+
     elif args.exp == 'alt':
         alternate_outcomes(task=args.task, num_iter=args.num_iter, run_by_seed=args.run_by_seed, seed=args.seed,
                            num_seeds=args.num_seeds, norm_consistent=args.norm_consistent)
