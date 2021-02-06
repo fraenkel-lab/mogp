@@ -97,11 +97,11 @@ def get_map_model(mod_path, mod_suffix, num_seeds=5, thresh=10, num_obs=20):
     if best_model == None:
         print('No models passed monotonicity test - check threshold: {}'.format(thresh))
     else:
-        while check_model_monotonicity(best_model, num_obs=None) is False:
-            split_nonmonotonic_clusters(best_model)
+        while check_model_monotonicity(best_model, thresh=thresh, num_obs=None) is False:
+            # print('splitting cluster')
+            split_nonmonotonic_clusters(best_model, thresh=thresh)
     print('best seed: {}, ll {}'.format(best_model_seed, best_ll))
     return best_model
-
 
 class ModelSum:
     """Handy class to store all information about each model for prediction/sparsity experiments"""
@@ -152,6 +152,7 @@ def plot_slope_by_clust(ax, model, k, lower_bound=0, upper_bound=1, estimate_x_v
 
     ax.plot(x_slp_vals, y_slp_vals, '--', color=slope_col, linewidth=3)
 
+
     # Estimate difference between slope prediction and MoGP at estimate_x_val years
     mogp_estim = model.obsmodel[k].model.predict(np.array([estimate_x_val]).reshape(-1, 1))[0][0][0]
     slope_estim = (intercept + slope * estimate_x_val)
@@ -160,21 +161,21 @@ def plot_slope_by_clust(ax, model, k, lower_bound=0, upper_bound=1, estimate_x_v
     return estim_diff
 
 
-def plot_largest_mogp_clusters(ax, model, data, disp_clust, color_palette, data_flag=True, model_flag=True):
+def plot_largest_mogp_clusters(ax, model, data, disp_clust, color_palette, data_flag=True, model_flag=True, gpy_pad=0.5):
     """Plot x number of largest mogp clusters, where disp_clust indicates x"""
     nc = len(np.where(model.allocmodel.Nk > 0)[0])
     idx = np.argsort(-model.allocmodel.Nk)[0:nc]
     for i, k in enumerate(idx[:disp_clust]):
         ax, num_pat_k = plot_mogp_by_clust(ax, model, data, k, data_flag=data_flag, data_col=color_palette[i],
-                                           model_flag=model_flag, model_col=color_palette[i])
+                                           model_flag=model_flag, model_col=color_palette[i], gpy_pad=gpy_pad)
     return ax
 
 
-def format_mogp_axs(ax, max_x=8, x_step=2.0):
+def format_mogp_axs(ax, max_x=8, x_step=2.0, y_label=[0,24,48], y_minmax=(-5, 53)):
     ax.set_xlim([0, max_x])
     ax.set_xticks(np.arange(0, max_x + 1, x_step))
-    ax.set_yticks([0,24,48])
-    ax.set_ylim(-5, 53)
+    ax.set_yticks(y_label)
+    ax.set_ylim(y_minmax)
 
     return ax
 
