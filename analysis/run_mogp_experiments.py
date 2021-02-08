@@ -88,7 +88,7 @@ def full_alsfrst(project, num_iter=100, num_seeds=5, run_by_seed=False, seed=Non
                 curexp.run_experiment()
 
 
-def alsfrst_predict(project, kernel, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
+def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/prediction')
@@ -99,14 +99,27 @@ def alsfrst_predict(project, kernel, tasknum=None, num_iter=100, num_seeds=5, ru
 
     # option to run each task separately - to parallelize for proact
     if run_by_seed:
-        assert (seed is not None and tasknum is not None)
-        curexp.expname = 'predict_{}'.format(tasknum)
-        curexp.seed = seed
-        curexp.run_experiment()
+        if task is not None:
+            assert (seed is not None) & ((task == 'upper_predict') | (task == 'lower_predict'))
+            if task == 'upper_predict':
+                task_list = [1.5, 2.0]
+            elif task == 'lower_predict':
+                task_list = [0.25, 0.50, 1.0]
+
+            for cur_task in task_list:
+                curexp.expname = 'predict_{}'.format(cur_task)
+                curexp.seed = seed
+                curexp.run_experiment()
+
+        else:
+            assert (seed is not None and tasknum is not None)
+            curexp.expname = 'predict_{}'.format(tasknum)
+            curexp.seed = seed
+            curexp.run_experiment()
     else:
         for cur_seed in range(0, num_seeds):
-            for task in task_list:
-                curexp.expname = 'predict_{}'.format(task)
+            for cur_task in task_list:
+                curexp.expname = 'predict_{}'.format(cur_task)
                 curexp.seed = cur_seed
                 curexp.run_experiment()
 
@@ -211,7 +224,8 @@ parser.add_argument("--run_by_seed", default=False)
 parser.add_argument("--seed", type=int, default=None)
 parser.add_argument("--multi", type=bool, default=False, choices=[True, False])
 parser.add_argument("--numsplit", type=int, default=5)
-parser.add_argument("--task", default=None, choices=['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp', 'fvcpmax'])
+parser.add_argument("--task", default=None, choices=['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp',
+                                                     'fvcpmax', 'upper_predict', 'lower_predict'])
 parser.add_argument("--tasknum", type=float, choices=[0.25, 0.50, 1.0, 1.5, 2.0])
 parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True, False])
 
@@ -224,7 +238,7 @@ if __name__ == '__main__':
                      run_by_seed=args.run_by_seed, seed=args.seed, kernel=args.kernel, multiprocess=args.multi)
 
     elif args.exp == 'predict':
-        alsfrst_predict(project=args.proj, kernel=args.kernel, tasknum=args.tasknum, num_iter=args.num_iter,
+        alsfrst_predict(project=args.proj, kernel=args.kernel, task=args.task, tasknum=args.tasknum, num_iter=args.num_iter,
                         num_seeds=args.num_seeds, run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
 
     elif args.exp == 'sparse':
