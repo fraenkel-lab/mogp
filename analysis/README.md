@@ -28,7 +28,7 @@ MoGP can be computationally intensive to run. In the experiments described here,
  **Script**: [process_data_for_mogp_experiments.py](process_data_for_mogp_experiments.py)
 
 ## 3) Run MoGP Experiments
-**Description**: Generate trained models for all experiments. MoGP can be computationally intensive. Runtimes for models found [here](reports/mogp_azure_runs.xslx)        
+**Description**: Generate trained models for all experiments. MoGP can be computationally intensive. Runtimes for models found in [mogp_azure_runs.xlsx](reports/mogp_azure_runs.xlsx)     
 **Inputs**: pickled data files for each model, in `data/model_data`  
 **Outputs**: trained model files, in `data/model_data`   
 **Script**: [run_mogp_experiments.py](run_mogp_experiments.py)
