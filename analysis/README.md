@@ -1,7 +1,7 @@
 # Experiment Workflow
 This describes the scripts to run experiments and generate manuscript figures. Computational setup for experiments also detailed here.
 
-MoGP can be computationally intensive to run. In the experiments described here, Azure virtual machines were used train the models. Machine sizes and run times listed here.
+MoGP can be computationally intensive to run. In the experiments described here, Azure virtual machines were used train the models. Machine sizes and run times listed [here](reports/mogp_azure_runs.xlsx).
 
 ## 1) Pre-processing
 **Description**: Creates .csv matrices from .sas7bdat files - for friendlier use with Python scripts  
