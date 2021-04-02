@@ -3,7 +3,7 @@
 ## Background
 MoGP is a a flexible framework for clustering patients that share trajectory patterns
 
-![Visual Abstract](docs/mogp_visual_abstract.pdf)
+![Visual Abstract](docs/mogp_visual_abstract.jpg)
 
 The model leverages two Bayesian nonparametric methods:
 - **Gaussian process regression**: Learns trajectories from data, enabling the model to capture a wide variety of progression patterns; Does not require the specification of a particular functional form
