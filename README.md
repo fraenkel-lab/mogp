@@ -1,7 +1,7 @@
 # MoGP: Mixture of Gaussian Processes Model for Sparse Longitudinal Data
 
 ## Background
-MoGP is a a flexible framework for clustering patients that share trajectory patterns
+MoGP is a a flexible framework for clustering longitudinal data to identify trajectory patterns
 
 ![Visual Abstract](docs/mogp_visual_abstract.jpg)
 
