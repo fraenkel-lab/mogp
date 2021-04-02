@@ -26,7 +26,7 @@ class MoGP_constrained:
                  savename='MoGP_constrained', save_iter=25, kernel='rbf', signal_variance=1.,
                  signal_variance_fix=True, noise_variance=1., noise_variance_fix=False, mean_func=True, threshold=None,
                  onset_anchor=True, normalize=False, Y_mean=None, Y_std=None):
-        """A collapsed sampler for a DP mixture of GPs but with additional constraints enforcing monotonicity.
+        """A collapsed sampler for a DP mixture of GPs but with additional bias preferring monotonicity.
 
         Arguments:
             X (np.ndarray): explanatory variable (time since symptom onset) N * T (N - # patients, T - # time points)

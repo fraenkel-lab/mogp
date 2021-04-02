@@ -1,7 +1,15 @@
 # Experiment Workflow
-This describes the scripts to run experiments and generate manuscript figures. Computational setup for experiments also detailed here.
+This folder includes all scripts used to run experiments and generate manuscript figures.
 
 MoGP can be computationally intensive to run. In the experiments described here, Azure virtual machines were used train the models. Machine sizes and run times listed [here](reports/mogp_azure_runs.xlsx).
+
+ The folder is intended for reference; code cannot be run unless clinical data is gathered by the user.
+
+ **Download Data**: This analysis uses clinical scores from four clinical ALS cohorts, three of which are available to download publicly or upon request. See 2a below for versions used in manuscript.
+ - AnswerALS (AALS): AALS is publicly available (download "Full Metadata" at data.answerals.org)
+ - Clinical Trial of Ceftriaxone in ALS (CEFT): CEFT can be downloaded from National Institute of Neurological Disorders and Stroke (NINDS) (https://www.ninds.nih.gov/Current-Research/Research-Funded-NINDS/Clinical-Research/Archived-Clinical-Research-Datasets) by request
+ - The Pooled Resource Open-Access ALS Clinical Trials (PRO-ACT): PRO-ACT can be downloaded by request (https://nctu.partners.org/ProACT)
+ - Emory ALS Clinic database (EMORY): Restricted access at this time
 
 ## 1) Pre-processing
 **Description**: Creates .csv matrices from .sas7bdat files - for friendlier use with Python scripts  
