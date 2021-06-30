@@ -32,4 +32,4 @@ python setup.py install --user
 ```
 ## Relevant Citations
 
-Divya Ramamoorthy, Kristen Severson, Soumya Ghosh, Karen Sachs, Answer ALS, Jonathan D. Glass, Christina N. Fournier, Pooled Resource Open-Access ALS Clinical Trials Consortium, James Berry, Kenney Ng, Ernest Fraenkel. Identifying Patterns of ALS Progression from Sparse Longitudinal Data. *medRxiv. doi: 10.1101/2021.05.13.21254848*
+Divya Ramamoorthy, Kristen Severson, Soumya Ghosh, Karen Sachs, Answer ALS, Jonathan D. Glass, Christina N. Fournier, Pooled Resource Open-Access ALS Clinical Trials Consortium, James Berry, Kenney Ng, Ernest Fraenkel. Identifying Patterns of ALS Progression from Sparse Longitudinal Data. *medRxiv. [doi: 10.1101/2021.05.13.21254848](https://doi.org/10.1101/2021.05.13.21254848)*
