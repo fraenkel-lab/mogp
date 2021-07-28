@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import linregress
 
+from scipy.optimize import curve_fit
+# import statsmodels.formula.api as smf
+
 
 ###########################################################################
 #######                   Slope/Error Functions                     #######
@@ -28,6 +31,22 @@ def pred_linreg_fxn(x_train, y_train, x_pred):
     return y_pred
 
 
+def sigmoid_d50(x, D50, dx):
+    """Calculates y_prerdiction using 2-parameter sigmoidal model (Based off D50 ALS model)"""
+    y = 48 / (1 + np.exp((x - D50) / dx))
+    return y
+
+
+def pred_sigmoid_fxn(x_train, y_train, x_pred):
+    """Use sigmoid function to predict y values given training and test vectors"""
+    d50_init = 5
+    dx_init = 0.5
+    p0 = [d50_init, dx_init]  # Initial guess, based on max/min values
+    popt, pcov = curve_fit(sigmoid_d50, x_train, y_train, p0, method='dogbox', bounds=((0.1, 0.1), (75, 5)))
+    y_pred = sigmoid_d50(x_pred, *popt)
+    return y_pred
+
+
 def calc_y_pred_model(mod, x_real, cur_clust):
     """Calculate y_pred using given x and y data; return both original y value and predicted value"""
     pred_model = mod.obsmodel[cur_clust].model.predict(x_real.reshape(-1, 1))
@@ -47,6 +66,63 @@ def calc_error(y_real, y_pred):
     else:
         curr_err = np.nan
     return curr_err
+
+
+def calc_y_pred(model_type, x_train, y_train=None, x_pred=None, mod=None, i=None):
+    """Calculates y__predictions for  all baselines"""
+    assert model_type in ['slope', 'sigmoid', 'lme', 'rbf', 'linear', 'gp'], 'model type {} not implemented'.format(
+        model_type)  # all currently implemented baselines
+
+    if model_type is 'slope':
+        y_pred = pred_linreg_fxn(x_train, y_train, x_pred)  # test x data identical to train x data for this exp
+    elif model_type is 'sigmoid':
+        y_pred = pred_sigmoid_fxn(x_train, y_train, x_pred)
+    elif model_type is 'gp':
+        y_pred = pred_single_gp(x_train, y_train, x_pred)
+    elif model_type is 'lme':
+        assert mod is not None
+        y_pred, _ = pred_lme_model(i, mod, x_pred)
+    elif (model_type is 'rbf') or (model_type is 'linear'):
+        assert mod is not None
+        cur_clust = mod.z[i]
+        y_pred = calc_y_pred_model(mod, x_pred, cur_clust)
+
+    y_pred = y_pred.reshape(-1)
+    return y_pred
+
+
+# def train_lme_model(data):
+#     """Train population-wide linear mixed effects model - with random slope and random intercept"""
+#     X_full = data['XA']
+#     Y_full = data['YA']
+
+#     yflat = Y_full.reshape(-1)
+#     xflat = X_full.reshape(-1)
+#     pat_ind_o = np.arange(X_full.shape[0])
+#     pat_ind = np.repeat(pat_ind_o, X_full.shape[1]).reshape(-1)
+
+#     assert yflat.shape == xflat.shape
+#     assert Y_full.shape == X_full.shape
+#     assert pat_ind.shape == yflat.shape
+
+#     df_data_long = pd.DataFrame({'id': pat_ind, 'x': xflat, 'Y': yflat})
+#     df_data_long.dropna(how='any', inplace=True)
+
+#     # linear mixed effects model (statsmodels)
+#     md = smf.mixedlm("Y ~ x", df_data_long, groups=df_data_long["id"], re_formula="~x")
+#     mdf = md.fit(method=["lbfgs"])
+
+#     return mdf
+
+
+# def pred_lme_model(i, mdf, x_pred):
+#     """Predict LME model, given the index of the patient"""
+#     group_int = mdf.params['Intercept']
+#     group_slope = mdf.params['x']
+#     y_pred_group = (group_int) + x_pred * (group_slope)
+#     y_pred_indiv = (group_int + mdf.random_effects[i]['Group']) + x_pred * (mdf.random_effects[i]['x'] + group_slope)
+#     return y_pred_indiv, y_pred_group
+
 
 ###########################################################################
 #######                MoGP Analysis Functions                      #######
