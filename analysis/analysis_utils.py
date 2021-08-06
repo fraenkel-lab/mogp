@@ -28,7 +28,9 @@ def pred_linreg_fxn(x_train, y_train, x_pred):
     """Predict y values given training and test vectors"""
     slope_train, intercept_train = linreg_fxn(x_train, y_train)
     y_pred = x_pred*slope_train + intercept_train
-    return y_pred
+    # return y_pred
+    return y_pred, slope_train, intercept_train
+
 
 
 def sigmoid_d50(x, D50, dx):
@@ -44,7 +46,8 @@ def pred_sigmoid_fxn(x_train, y_train, x_pred):
     p0 = [d50_init, dx_init]  # Initial guess, based on max/min values
     popt, pcov = curve_fit(sigmoid_d50, x_train, y_train, p0, method='dogbox', bounds=((0.1, 0.1), (75, 5)))
     y_pred = sigmoid_d50(x_pred, *popt)
-    return y_pred
+    # return y_pred
+    return y_pred, popt, pcov
 
 
 def calc_y_pred_model(mod, x_real, cur_clust):
@@ -70,18 +73,18 @@ def calc_error(y_real, y_pred):
 
 def calc_y_pred(model_type, x_train, y_train=None, x_pred=None, mod=None, i=None):
     """Calculates y__predictions for  all baselines"""
-    assert model_type in ['slope', 'sigmoid', 'lme', 'rbf', 'linear', 'gp'], 'model type {} not implemented'.format(
+    assert model_type in ['slope', 'sigmoid', 'rbf', 'linear'], 'model type {} not implemented'.format(
         model_type)  # all currently implemented baselines
 
     if model_type is 'slope':
-        y_pred = pred_linreg_fxn(x_train, y_train, x_pred)  # test x data identical to train x data for this exp
+        y_pred, _, _ = pred_linreg_fxn(x_train, y_train, x_pred)  # test x data identical to train x data for this exp
     elif model_type is 'sigmoid':
-        y_pred = pred_sigmoid_fxn(x_train, y_train, x_pred)
-    elif model_type is 'gp':
-        y_pred = pred_single_gp(x_train, y_train, x_pred)
-    elif model_type is 'lme':
-        assert mod is not None
-        y_pred, _ = pred_lme_model(i, mod, x_pred)
+        y_pred, _, _ = pred_sigmoid_fxn(x_train, y_train, x_pred)
+    # elif model_type is 'gp':
+    #     y_pred = pred_single_gp(x_train, y_train, x_pred)
+    # elif model_type is 'lme':
+    #     assert mod is not None
+    #     y_pred, _ = pred_lme_model(i, mod, x_pred)
     elif (model_type is 'rbf') or (model_type is 'linear'):
         assert mod is not None
         cur_clust = mod.z[i]
