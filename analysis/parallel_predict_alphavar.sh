@@ -7,19 +7,19 @@ do
     esac
 done
 
-# exp='predict'
-# kernels_list=('rbf', 'linear')
-# run_by_seed=True
-# seed_list=(0 1 2 3 4)
-# task_list=(0.25 0.50 1.0 1.5 2.0)
-# alpha_list=(0.1 0.5 2 10)
-
 exp='predict'
-kernels_list=('linear')
+kernels_list=('rbf', 'linear')
 run_by_seed=True
-seed_list=(0)
-task_list=(0.25)
-alpha_list=(0.1)
+seed_list=(0 1 2 3 4)
+task_list=(0.25 0.50 1.0 1.5 2.0)
+alpha_list=(0.1 0.5 2 10)
+
+# exp='predict'
+# kernels_list=('linear')
+# run_by_seed=True
+# seed_list=(0)
+# task_list=(0.25)
+# alpha_list=(0.1)
 
 for kernel in "${kernels_list[@]}" ; do
 	for seed in "${seed_list[@]}" ; do
