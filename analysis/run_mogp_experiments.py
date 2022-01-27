@@ -9,7 +9,7 @@ from mogp import MoGP_constrained
 
 
 class Experiment:
-    def __init__(self, project, model_data_path, minnum, num_iter, expname=None, seed=None, kernel=None, multiprocess=False, normalize=True, y_mean=None, y_std=None):
+    def __init__(self, project, model_data_path, minnum, num_iter, expname=None, seed=None, kernel=None, multiprocess=False, normalize=True, y_mean=None, y_std=None, alpha_scale=1):
         self.project = project
         self.model_data_path = model_data_path
         self.minnum = minnum
@@ -31,20 +31,26 @@ class Experiment:
         self.signal_variance_fix = True
         self.noise_variance = 0.5
         self.noise_variance_fix = False
+        self.alpha_scale=alpha_scale
+        self.alpha=None
 
     def train_model(self):
         savepath = self.model_data_path / 'results' / self.kernel
-        savename = 'model_{}_{}_{}_seed_{}'.format(self.project, self.minnum, self.expname, self.seed)
+        if self.alpha_scale==1:
+            savename = 'model_{}_{}_{}_seed_{}'.format(self.project, self.minnum, self.expname, self.seed)
+        else:
+            savename = 'model_{}_{}_{}_seed_{}_alphasc_{}'.format(self.project, self.minnum, self.expname, self.seed, self.alpha_scale)
+
         data_dict = joblib.load(self.model_data_path / 'data_{}_{}_{}.pkl'.format(self.project, self.minnum, self.expname))
 
         XA = data_dict['XA']
         YA = data_dict['YA']
         num_patients = len(data_dict['SI'])
         num_init_clusters = round(num_patients / 50)
-        alpha = num_init_clusters / np.log10(num_patients)
+            
+        self.alpha = (num_init_clusters / np.log10(num_patients))*self.alpha_scale
 
-
-        mixR = MoGP_constrained(X=XA, Y=YA, alpha=alpha,
+        mixR = MoGP_constrained(X=XA, Y=YA, alpha=self.alpha,
                                 num_init_clusters=num_init_clusters, num_iter=self.num_iter, rand_seed=self.seed,
                                 savepath=savepath, savename=savename, kernel=self.kernel,
                                 mean_func=self.mean_func, threshold=self.threshold, signal_variance=self.signal_variance,
@@ -88,14 +94,14 @@ def full_alsfrst(project, num_iter=100, num_seeds=5, run_by_seed=False, seed=Non
                 curexp.run_experiment()
 
 
-def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
+def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, alpha_scale=1):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/prediction')
     minnum = 'min4'
     task_list = [0.25, 0.50, 1.0, 1.5, 2.0]
 
-    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess)
+    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess, alpha_scale=alpha_scale)
 
     # option to run each task separately - to parallelize for proact
     if run_by_seed:
@@ -229,6 +235,8 @@ parser.add_argument("--task", default=None, choices=['alsfrst_bulb', 'alsfrst_fi
 parser.add_argument("--tasknum", type=float, choices=[0.25, 0.50, 1.0, 1.5, 2.0])
 parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True, False])
 
+parser.add_argument("--alpha_scale", type=float, default=1.0)
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -239,7 +247,7 @@ if __name__ == '__main__':
 
     elif args.exp == 'predict':
         alsfrst_predict(project=args.proj, kernel=args.kernel, task=args.task, tasknum=args.tasknum, num_iter=args.num_iter,
-                        num_seeds=args.num_seeds, run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
+                        num_seeds=args.num_seeds, run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, alpha_scale=args.alpha_scale)
 
     elif args.exp == 'sparse':
         alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds,
