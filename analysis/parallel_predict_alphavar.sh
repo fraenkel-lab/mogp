@@ -26,6 +26,7 @@ for kernel in "${kernels_list[@]}" ; do
 		for task in "${task_list[@]}" ; do
 			for alphasc in "${alpha_list[@]}" ; do
 		    			sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc
+			done
 		done
 	done
 done
