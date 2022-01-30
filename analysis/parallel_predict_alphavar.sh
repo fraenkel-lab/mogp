@@ -8,7 +8,8 @@ do
 done
 
 exp='predict'
-kernels_list=('rbf', 'linear')
+kernels_list=('rbf' 'linear')
+# kernels_list=('rbf')
 run_by_seed=True
 seed_list=(0 1 2 3 4)
 task_list=(0.25 0.50 1.0 1.5 2.0)
