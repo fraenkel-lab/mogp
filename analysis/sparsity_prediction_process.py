@@ -6,6 +6,8 @@ import joblib
 import numpy as np
 from pathlib import Path
 
+import argparse
+
 
 def calc_y_pred_spec_data(data_box, data_spec_box, i, model_type=None, mod=None):
     """Calculate y_prediction with sparse data matrices"""
@@ -27,7 +29,7 @@ def calc_y_pred_spec_data(data_box, data_spec_box, i, model_type=None, mod=None)
     return y_test, y_pred
 
 
-def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts, results_path=None):
+def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts, results_path=None, alphasc=None):
     """Calcluate rmse error between witheld data and mean function of model"""
     assert model_type in ['slope', 'sigmoid', 'rbf', 'linear'], 'model type {} not implemented'.format(
         model_type)  # all currently implemented baselines
@@ -46,7 +48,12 @@ def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts,
 
         if model_type in ['rbf', 'linear']:
             assert results_path is not None
-            cur_model = get_map_model(results_path, 'model_{}'.format(name))
+
+            if alphasc is None:
+                cur_model = get_map_model(results_path, 'model_{}'.format(name))
+            else:
+                cur_model = get_map_model(results_path, 'model_{}_alphasc_{}'.format(name, alphasc)) #add alphasc flag
+
             assert len(cur_model.z) == len(cur_data['SI']), 'Number of participants in data and model do not match'
             assert model_type == cur_model.kernel, 'model type and model kernel do not match'
             num_clust = len(np.where(cur_model.allocmodel.Nk > 0)[0])
@@ -108,10 +115,51 @@ def gen_mod_obj_full(project, task_name, save=False):
 
     return mod_obj_dict
 
+def gen_mod_obj_full_alpha(project, task_name, save=False, alphasc=None):
+    """Generate model objects for sparsity and prediction experiments"""
+    exp_path = Path('data/model_data/2_sparsity_prediction')
+
+    mod_obj_dict = {}
+    if task_name == 'predict':
+        min_num = 'min4'
+        mat_opts = ['0.25', '0.5', '1.0', '1.5', '2.0']
+        data_path = exp_path / 'prediction'
+
+    # elif task_name == 'sparse':
+    #     min_num = 'min10'
+    #     mat_opts = ['25', '50', '75']
+    #     data_path = exp_path / 'sparsity'
+
+    for base_mod in ['rbf',  'linear']:
+        res_path = data_path / 'results' / base_mod
+        mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts,
+                                     results_path=res_path)
+
+    # for base_mod in ['slope', 'sigmoid']:
+    #     mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts)
+
+    if save:
+        save_path = data_path / 'results' / 'rmse'
+        Path.mkdir(save_path, parents=True, exist_ok=True)
+        print(save_path.resolve())
+        for key in mod_obj_dict.keys():
+            joblib.dump(mod_obj_dict[key], save_path / '{}_{}_{}_{}_rmse_err.pkl'.format(task_name, project, key, alphasc))
+
+    return mod_obj_dict
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--alpha", type=bool, default=False, choices=[True, False])
 
 if __name__ == "__main__":
-    # calculates RMSE error for prediction/sparsity experiments between witheld data and trajectory mean function
-    _ = gen_mod_obj_full('ceft', 'sparse', save=True)
-    _ = gen_mod_obj_full('ceft', 'predict', save=True)
-    _ = gen_mod_obj_full('proact', 'sparse', save=True)
-    _ = gen_mod_obj_full('proact', 'predict', save=True)
+    args = parser.parse_args()
+    if args.alpha:
+        alphsc_list = [0.1, 0.5, 2, 10]
+        for a in alphsc_list:
+            print('calculating_alpha_rmse: ', a)
+            _ = gen_mod_obj_full_alpha('ceft', 'predict', save=True, alphasc=a)
+    else:
+        # calculates RMSE error for prediction/sparsity experiments between witheld data and trajectory mean function
+        _ = gen_mod_obj_full('ceft', 'sparse', save=True)
+        _ = gen_mod_obj_full('ceft', 'predict', save=True)
+        _ = gen_mod_obj_full('proact', 'sparse', save=True)
+        _ = gen_mod_obj_full('proact', 'predict', save=True)
