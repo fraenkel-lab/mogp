@@ -133,7 +133,7 @@ def gen_mod_obj_full_alpha(project, task_name, save=False, alphasc=None):
     for base_mod in ['rbf',  'linear']:
         res_path = data_path / 'results' / base_mod
         mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts,
-                                     results_path=res_path)
+                                     results_path=res_path, alphasc=alphasc)
 
     # for base_mod in ['slope', 'sigmoid']:
     #     mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts)
