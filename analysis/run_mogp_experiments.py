@@ -39,7 +39,7 @@ class Experiment:
         if self.alpha_scale==1:
             savename = 'model_{}_{}_{}_seed_{}'.format(self.project, self.minnum, self.expname, self.seed)
         else:
-            savename = 'model_{}_{}_{}_seed_{}_alphasc_{}'.format(self.project, self.minnum, self.expname, self.seed, self.alpha_scale)
+            savename = 'model_{}_{}_{}_alphasc_{}_seed_{}'.format(self.project, self.minnum, self.expname, self.alpha_scale, self.seed)
 
         data_dict = joblib.load(self.model_data_path / 'data_{}_{}_{}.pkl'.format(self.project, self.minnum, self.expname))
 
