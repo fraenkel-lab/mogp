@@ -220,9 +220,27 @@ def alternate_outcomes(task, num_iter=100, run_by_seed=False, seed=None, num_see
             curexp.run_experiment()
 
 
+def nonals_domains(project, seed, kernel, num_iter=100):
+    """Ruun MoGP for non-ALS scores: Parkinson's and Alzheimber's"""
+    model_data_path = Path('data/model_data/5_nonals_domains/')
+    minnum='min3'
+
+    assert (project=='ppmi')|(project=='adni'), 'non-implemented dataset, check project'
+    assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
+
+    if project=='ppmi':
+        expname='updrs'
+    elif project=='adni':
+        expname='adas13'
+
+    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname,
+                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed)
+    curexp.run_experiment()
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt'])
-parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact'])
+parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals'])
+parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni'])
 parser.add_argument("--kernel", default=None, choices=['rbf', 'linear'])
 parser.add_argument("--num_iter", type=int, default=100)
 parser.add_argument("--num_seeds", type=int, default=5)
@@ -260,3 +278,6 @@ if __name__ == '__main__':
     elif args.exp == 'alt':
         alternate_outcomes(task=args.task, num_iter=args.num_iter, run_by_seed=args.run_by_seed, seed=args.seed,
                            num_seeds=args.num_seeds, norm_consistent=args.norm_consistent)
+
+    elif args.exp == 'nonals':
+        nonals_domains(project=args.proj, seed=args.seed, kernel-args.kernel, num_iter=args.num_iter)
