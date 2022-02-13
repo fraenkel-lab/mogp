@@ -9,7 +9,7 @@ seed_list=(0)
 for kernel in "${kernels_list[@]}" ; do
 	for seed in "${seed_list[@]}" ; do
 		for proj in "${proj_list[@]}" ; do
-	    			sbatch run_nonals.sbatch -p $proj -s $seed -k $kernel
+			sbatch run_nonals.sbatch -p $proj -s $seed -k $kernel
 		done
 	done
 done
