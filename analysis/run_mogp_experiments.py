@@ -280,4 +280,4 @@ if __name__ == '__main__':
                            num_seeds=args.num_seeds, norm_consistent=args.norm_consistent)
 
     elif args.exp == 'nonals':
-        nonals_domains(project=args.proj, seed=args.seed, kernel-args.kernel, num_iter=args.num_iter)
+        nonals_domains(project=args.proj, seed=args.seed, kernel=args.kernel, num_iter=args.num_iter)
