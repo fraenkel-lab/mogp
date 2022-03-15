@@ -153,7 +153,7 @@ parser.add_argument("--alpha", type=bool, default=False, choices=[True, False])
 if __name__ == "__main__":
     args = parser.parse_args()
     if args.alpha:
-        alphsc_list = [0.1, 0.5, 2, 10]
+        alphsc_list = [0.1, 0.5, 2.0, 10.0]
         for a in alphsc_list:
             print('calculating_alpha_rmse: ', a)
             _ = gen_mod_obj_full_alpha('ceft', 'predict', save=True, alphasc=a)
