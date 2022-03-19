@@ -94,11 +94,11 @@ def full_alsfrst(project, num_iter=100, num_seeds=5, run_by_seed=False, seed=Non
                 curexp.run_experiment()
 
 
-def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, alpha_scale=1):
+def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, alpha_scale=1, minnum='min4'):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/prediction')
-    minnum = 'min4'
+    # minnum = 'min4'
     task_list = [0.25, 0.50, 1.0, 1.5, 2.0]
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess, alpha_scale=alpha_scale)
@@ -130,11 +130,11 @@ def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_
                 curexp.run_experiment()
 
 
-def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False):
+def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, minnum='min10'):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/sparsity')
-    minnum = 'min10'
+    # minnum = 'min10'
     task_list = [25, 50, 75]
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, num_iter=num_iter, kernel=kernel, multiprocess=multiprocess)
@@ -254,7 +254,7 @@ parser.add_argument("--tasknum", type=float, choices=[0.25, 0.50, 1.0, 1.5, 2.0]
 parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True, False])
 
 parser.add_argument("--alpha_scale", type=float, default=1.0)
-
+parser.add_argument("--minnum", type=str)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -265,11 +265,11 @@ if __name__ == '__main__':
 
     elif args.exp == 'predict':
         alsfrst_predict(project=args.proj, kernel=args.kernel, task=args.task, tasknum=args.tasknum, num_iter=args.num_iter,
-                        num_seeds=args.num_seeds, run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, alpha_scale=args.alpha_scale)
+                        num_seeds=args.num_seeds, run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, alpha_scale=args.alpha_scale, minnum=args.minnum)
 
     elif args.exp == 'sparse':
         alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds,
-                         run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
+                         run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, minnum=args.minnum)
 
     elif args.exp == 'ref':
         reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,

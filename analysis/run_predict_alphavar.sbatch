@@ -7,7 +7,7 @@
 #SBATCH -p sched_mem1TB_centos7  #Run on sched_engaging_default partition
 #SBATCH --exclude=node009,node011
 
-while getopts a:b:c:d:e:f:g: flag
+while getopts a:b:c:d:e:f:g:h: flag
 do
     case "${flag}" in
 
@@ -18,9 +18,10 @@ do
         e) seed=${OPTARG};;
         f) tasknum=${OPTARG};;
         g) alpha_scale=${OPTARG};;
+		h) minnum=${OPTARG};;
     esac
 done
 
 
 
-python run_mogp_experiments.py --exp $exp --proj $proj --kernel $kernel --run_by_seed $run_by_seed --seed $seed --tasknum $tasknum --alpha_scale $alpha_scale
+python run_mogp_experiments.py --exp $exp --proj $proj --kernel $kernel --run_by_seed $run_by_seed --seed $seed --tasknum $tasknum --alpha_scale $alpha_scale --minnum $minnum
