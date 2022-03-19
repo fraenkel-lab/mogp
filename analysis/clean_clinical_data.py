@@ -231,6 +231,42 @@ def clean_ceft(onset_file, alsfrs_file, column_labels):
 
     return df_cef_time_sub
 
+def clean_nathist(onset_file, alsfrs_file, column_labels):
+    """ Generate consistent pandas dataframe for timeseries ALSFRS-R scores from ALS Natural History files
+
+    Arguments:
+        onset_file (Path): path to AnswerALS file that includes age at ALS symptom onset ('v_NB_CLIN_NALSHXFX.csv')
+        alsfrs_file (Path): path to AnswerALS file that includes ALSFRS-R scores ('v_NB_CLIN_ALSFRS_R.csv')
+        column_labels (list): list of column names in final matrix
+    Returns:
+        df_aals_time_sub (pd.DataFrame): timeseries clinical measurements, in years from symptom onset
+     """
+
+    # Load files into pandas dataframes and convert to numeric values
+    df_nathist_onset = pd.read_csv(onset_file)
+    df_nathist_onset.rename(columns={'Neurostamp':'SubjectUID'}, inplace=True)
+    df_nathist_onset = df_nathist_onset.set_index('SubjectUID').apply(pd.to_numeric, errors='coerce')
+    df_nathist_time = pd.read_csv(alsfrs_file)
+    df_nathist_time.rename(columns={'Neurostamp': 'SubjectUID'}, inplace=True)
+    df_nathist_time = df_nathist_time.set_index('SubjectUID').apply(pd.to_numeric, errors='coerce')
+
+    # Replace "Visit_Date" with "alsfrstdt" column to indicate date of alsfrs-r measurement
+    df_nathist_time.dropna(subset=['alsfrsdt'], inplace=True)
+    df_nathist_time['Visit_Date'] = df_nathist_time['alsfrsdt']
+
+    # Shift dataframe by date of symptom onset
+    onset_list = [x for x in df_nathist_onset['onsetdt'].dropna().index if x in df_nathist_time.index]
+    df_nathist_time = df_nathist_time.loc[onset_list]
+    # df_nathist_time = df_nathist_time.reset_index().groupby('SubjectUID').apply(
+    #     lambda x: shift_onset(x.name, x, df_nathist_onset, visit_col='Visit_Date', onset_col='onsetdt'))
+    df_nathist_time = df_nathist_time.join(df_nathist_onset[['onsetdt']], how='left')
+    df_nathist_time['Visit_Date'] = (df_nathist_time['Visit_Date'] - df_nathist_time['onsetdt']) / 365.4
+    df_nathist_time.reset_index(inplace=True)
+
+    df_nathist_time['dataset'] = 'nathist'
+    df_nathist_time_sub = df_nathist_time[column_labels]
+
+    return df_nathist_time_sub
 
 def calc_clean_summary_stats(df_time, category):
     """Calculate summary statistics (ALSFRS-R subscores, vital capacity max/average)"""
@@ -310,17 +346,23 @@ if __name__ == "__main__":
     assert (proact_data_onset.exists() & proact_data_alsfrs.exists()
             & proact_data_fvc.exists() & proact_data_survival.exists()), 'missing proact file'
 
+    nathist_data_path = Path('data/raw_data/nathist')
+    nathist_data_onset = nathist_data_path / 'v_NB_CLIN_NALSHXFX.csv'
+    nathist_data_alsfrs = nathist_data_path / 'v_NB_CLIN_ALSFRS_R.csv'
+    assert (nathist_data_onset.exists() & nathist_data_alsfrs.exists()), 'missing nathist file'
+
     # Load and clean dataframes
     df_time_emory = clean_emory(emory_file_path, alsfrs_cats)
     df_time_gtac = clean_gtac(gtac_file_path, alsfrs_cats)
     df_time_ceft = clean_ceft(ceft_data_onset, ceft_data_alsfrs, alsfrs_cats)
     df_time_aals = clean_aals(aals_data_onset, aals_data_alsfrs, alsfrs_cats)
+    df_time_nathist = clean_nathist(nathist_data_onset, nathist_data_alsfrs, alsfrs_cats)
 
     df_time_proact_alsfrs = clean_proact_time(proact_data_onset, proact_data_alsfrs, alsfrs_cats)
     df_time_proact_fvc = clean_proact_time(proact_data_onset, proact_data_fvc, fvcp_cats)
     df_stat_proact_survival = clean_proact_survival(proact_data_onset, proact_data_survival, df_time_proact_alsfrs)
 
-    df_time_merge_alsfrs = df_time_aals.append([df_time_proact_alsfrs, df_time_emory, df_time_gtac, df_time_ceft])
+    df_time_merge_alsfrs = df_time_aals.append([df_time_proact_alsfrs, df_time_emory, df_time_gtac, df_time_ceft, df_time_nathist])
     df_time_merge_alsfrs = calc_clean_summary_stats(df_time_merge_alsfrs, 'alsfrs')
     df_time_proact_fvc = calc_clean_summary_stats(df_time_proact_fvc, 'fvc')
 
