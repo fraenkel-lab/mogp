@@ -47,6 +47,8 @@ class Experiment:
         YA = data_dict['YA']
         num_patients = len(data_dict['SI'])
         num_init_clusters = round(num_patients / 50)
+        if num_init_clusters == 0:
+            num_init_clusters = 1 #minimum num clusters
             
         self.alpha = (num_init_clusters / np.log10(num_patients))*self.alpha_scale
 
