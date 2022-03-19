@@ -2,6 +2,14 @@
 
 # Usages:
 # sh parallel_predict_alphavar.sh -e 'predict' -b 'aals' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'predict' -b 'emory' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'aals' -m 'min10'
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'emory' -m 'min10'
+
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'ceft' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'aals' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'emory' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'proact' -m 'min4'
 
 alpha_list=(1.0)
 alphaset=False
@@ -39,7 +47,7 @@ for kernel in "${kernels_list[@]}" ; do
 	for seed in "${seed_list[@]}" ; do
 		for task in "${task_list[@]}" ; do
 			for alphasc in "${alpha_list[@]}" ; do
-		    			sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc
+		    			sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc -h $minnum
 			done
 		done
 	done
