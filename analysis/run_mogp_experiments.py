@@ -247,7 +247,7 @@ def nonals_domains(project, seed, kernel, num_iter=100):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals'])
-parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni'])
+parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni', 'nathist'])
 parser.add_argument("--kernel", default=None, choices=['rbf', 'linear'])
 parser.add_argument("--num_iter", type=int, default=100)
 parser.add_argument("--num_seeds", type=int, default=5)
