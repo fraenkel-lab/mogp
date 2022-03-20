@@ -144,7 +144,7 @@ def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=Fal
     if run_by_seed:
         assert (seed is not None)
         if tasknum is not None:
-            curexp.expname = 'sparse_{}'.format(tasknum)
+            curexp.expname = 'sparse_{}'.format(int(tasknum))
             curexp.seed = seed
             curexp.run_experiment()
         else:
