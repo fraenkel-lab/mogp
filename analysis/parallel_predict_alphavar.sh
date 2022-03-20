@@ -1,15 +1,16 @@
 #!/bin/bash
 
 # Usages:
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'aals' -m 'min10'
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'emory' -m 'min10'
+
 # sh parallel_predict_alphavar.sh -e 'predict' -b 'aals' -m 'min4'
 # sh parallel_predict_alphavar.sh -e 'predict' -b 'emory' -m 'min4'
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'aals' -m 'min10'
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'emory' -m 'min10'
 
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'ceft' -m 'min4'
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'aals' -m 'min4'
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'emory' -m 'min4'
-# sh parallel_predict_alphavar.sh -e 'sparsity' -b 'proact' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'ceft' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'aals' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'emory' -m 'min4'
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'proact' -m 'min4'
 
 alpha_list=(1.0)
 alphaset=False
@@ -29,11 +30,16 @@ kernels_list=('rbf' 'linear')
 # kernels_list=('rbf')
 run_by_seed=True
 seed_list=(0 1 2 3 4)
-task_list=(2.0 1.5 1.0 0.5 0.25)
 if $alphaset
 then
 	echo 'ifstat'
 	alpha_list=(0.1 0.5 2 10)
+fi
+
+if [[ "$exp" == "predict" ]]; then
+    task_list=(2.0 1.5 1.0 0.5 0.25)
+else
+    task_list=(25 50 75)
 fi
 
 # exp='predict'
