@@ -132,7 +132,7 @@ def alsfrst_predict(project, kernel, task=None, tasknum=None, num_iter=100, num_
                 curexp.run_experiment()
 
 
-def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, minnum='min10'):
+def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=False, seed=None, multiprocess=False, minnum='min10', tasknum=None):
     """Run MoGP for prediction tasks - with option of using multiprocessing to speed compute"""
 
     model_data_path = Path('data/model_data/2_sparsity_prediction/sparsity')
@@ -143,10 +143,15 @@ def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=Fal
 
     if run_by_seed:
         assert (seed is not None)
-        for task in task_list:
-            curexp.expname = 'sparse_{}'.format(task)
+        if tasknum is not None:
+            curexp.expname = 'sparse_{}'.format(tasknum)
             curexp.seed = seed
             curexp.run_experiment()
+        else:
+            for task in task_list:
+                curexp.expname = 'sparse_{}'.format(task)
+                curexp.seed = seed
+                curexp.run_experiment()
 
     else:
         for cur_seed in range(0, num_seeds):
@@ -252,7 +257,7 @@ parser.add_argument("--multi", type=bool, default=False, choices=[True, False])
 parser.add_argument("--numsplit", type=int, default=5)
 parser.add_argument("--task", default=None, choices=['alsfrst_bulb', 'alsfrst_fine', 'alsfrst_gross', 'alsfrst_resp',
                                                      'fvcpmax', 'upper_predict', 'lower_predict'])
-parser.add_argument("--tasknum", type=float, choices=[0.25, 0.50, 1.0, 1.5, 2.0])
+parser.add_argument("--tasknum", type=float, choices=[0.25, 0.50, 1.0, 1.5, 2.0, 25, 50, 75])
 parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True, False])
 
 parser.add_argument("--alpha_scale", type=float, default=1.0)
@@ -271,7 +276,7 @@ if __name__ == '__main__':
 
     elif args.exp == 'sparse':
         alsfrst_sparsity(project=args.proj, kernel=args.kernel, num_iter=args.num_iter, num_seeds=args.num_seeds,
-                         run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, minnum=args.minnum)
+                         run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, minnum=args.minnum, tasknum=args.tasknum)
 
     elif args.exp == 'ref':
         reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,
