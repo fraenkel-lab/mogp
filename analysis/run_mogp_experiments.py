@@ -9,7 +9,7 @@ from mogp import MoGP_constrained
 
 
 class Experiment:
-    def __init__(self, project, model_data_path, minnum, num_iter, expname=None, seed=None, kernel=None, multiprocess=False, normalize=True, y_mean=None, y_std=None, alpha_scale=1):
+    def __init__(self, project, model_data_path, minnum, num_iter, expname=None, seed=None, kernel=None, multiprocess=False, normalize=True, y_mean=None, y_std=None, alpha_scale=1, onset_anchor=True):
         self.project = project
         self.model_data_path = model_data_path
         self.minnum = minnum
@@ -23,6 +23,7 @@ class Experiment:
         self.y_std = y_std
 
         self.multiprocess = multiprocess
+        self.onset_anchor = onset_anchor
 
         # Static model parameters - consistent across all experiments
         self.mean_func = True
@@ -57,7 +58,8 @@ class Experiment:
                                 savepath=savepath, savename=savename, kernel=self.kernel,
                                 mean_func=self.mean_func, threshold=self.threshold, signal_variance=self.signal_variance,
                                 signal_variance_fix=self.signal_variance_fix, noise_variance=self.noise_variance,
-                                noise_variance_fix=self.noise_variance_fix, normalize=self.normalize, Y_mean=self.y_mean, Y_std=self.y_std)
+                                noise_variance_fix=self.noise_variance_fix, normalize=self.normalize, Y_mean=self.y_mean, Y_std=self.y_std, 
+                                onset_anchor=self.onset_anchor)
         mixR.sample()
 
     def run_experiment(self):
@@ -245,11 +247,16 @@ def nonals_domains(project, seed, kernel, num_iter=100):
     curexp.run_experiment()
 
 def roads(project, expname, seed, kernel, num_iter=100):
+    """Roads analysis; try both anchored and unanchored"""
     assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
     model_data_path = Path('data/model_data/6_roads/')
     minnum = 'min3_onsmax7_nojump'
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname,
                         num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed)
+    
+    if (expname == 'roadsnorm_noanchor')|(expname == 'alfrst_noanchor'):
+        curexp.onset_anchor = False
+
     curexp.run_experiment()
 
 
