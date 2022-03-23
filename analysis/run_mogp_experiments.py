@@ -244,10 +244,18 @@ def nonals_domains(project, seed, kernel, num_iter=100):
                         num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed)
     curexp.run_experiment()
 
+def roads(project, expname, seed, kernel, num_iter=100):
+    assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
+    model_data_path = Path('data/model_data/6_roads/')
+    minnum = 'min3_onsmax7_nojump'
+    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname,
+                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed)
+    curexp.run_experiment()
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals'])
-parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni', 'nathist'])
+parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals', 'roads'])
+parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni', 'nathist', 'alsse', 'eals'])
 parser.add_argument("--kernel", default=None, choices=['rbf', 'linear'])
 parser.add_argument("--num_iter", type=int, default=100)
 parser.add_argument("--num_seeds", type=int, default=5)
@@ -262,6 +270,8 @@ parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True,
 
 parser.add_argument("--alpha_scale", type=float, default=1.0)
 parser.add_argument("--minnum", type=str)
+parser.add_argument("--expname", default=None)
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -288,3 +298,7 @@ if __name__ == '__main__':
 
     elif args.exp == 'nonals':
         nonals_domains(project=args.proj, seed=args.seed, kernel=args.kernel, num_iter=args.num_iter)
+
+    elif args.exp == 'roads':
+        roads(project=args.proj, expname=args.expname, seed=args.seed, kernel=args.kernel, num_iter=args.num_iter)
+
