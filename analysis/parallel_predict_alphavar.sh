@@ -41,7 +41,7 @@ else
     task_list=(25 50 75)
 fi
 
-exp_name='alphavar'
+expname='alphavar'
 # exp='predict'
 # kernels_list=('linear')
 # run_by_seed=True
