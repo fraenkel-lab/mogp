@@ -32,7 +32,6 @@ run_by_seed=True
 seed_list=(0 1 2 3 4)
 if $alphaset
 then
-	echo 'ifstat'
 	alpha_list=(0.1 0.5 2 10)
 fi
 
@@ -42,6 +41,7 @@ else
     task_list=(25 50 75)
 fi
 
+exp_name='alphavar'
 # exp='predict'
 # kernels_list=('linear')
 # run_by_seed=True
@@ -53,7 +53,7 @@ for kernel in "${kernels_list[@]}" ; do
 	for seed in "${seed_list[@]}" ; do
 		for task in "${task_list[@]}" ; do
 			for alphasc in "${alpha_list[@]}" ; do
-		    			sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc -h $minnum
+		    			sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc -h $minnum -i $expname
 			done
 		done
 	done
