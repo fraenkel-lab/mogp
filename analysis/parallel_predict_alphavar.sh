@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # Usages:
+# sh parallel_predict_alphavar.sh -e 'sparse' -b 'nathist' -m 'min10'
+# sh parallel_predict_alphavar.sh -e 'predict' -b 'nathist' -m 'min4'
+
 # sh parallel_predict_alphavar.sh -e 'sparse' -b 'aals' -m 'min10'
 # sh parallel_predict_alphavar.sh -e 'sparse' -b 'emory' -m 'min10'
 
@@ -13,7 +16,7 @@
 # sh parallel_predict_alphavar.sh -e 'sparse' -b 'proact' -m 'min4'
 
 alpha_list=(1.0)
-alphaset=False
+alphaset=false
 
 while getopts e:b:m:a: flag
 do

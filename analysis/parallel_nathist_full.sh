@@ -12,7 +12,8 @@ task=1.0
 alphasc=1.0
 minnum='min3'
 expname='nathistfull'
+cursplit=0
 
 for seed in "${seed_list[@]}" ; do
-    sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc -h $minnum -i $expname
+    sbatch run_predict_alphavar.sbatch -a $exp -b $proj -c $kernel -d $run_by_seed -e $seed -f $task -g $alphasc -h $minnum -i $expname -j $cursplit
 done
