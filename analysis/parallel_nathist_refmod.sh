@@ -7,10 +7,6 @@ kernel='rbf'
 run_by_seed=true
 split_list=(0 1 2 3 4)
 
-seed_list=(0)
-split_list=(0)
-
-
 # Don't need below; using to fit pre-existing sbatch
 task=1.0
 alphasc=1.0
