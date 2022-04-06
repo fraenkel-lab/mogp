@@ -8,7 +8,7 @@
 #SBATCH --exclude=node009,node011
 #SBATCH --time=02:00:00
 
-while getopts a:b:c:d:e:f:g:h:i: flag
+while getopts a:b:c:d:e:f:g:h:i:j: flag
 do
     case "${flag}" in
 
@@ -21,8 +21,9 @@ do
         g) alpha_scale=${OPTARG};;
 		h) minnum=${OPTARG};;
         i) expname=${OPTARG};;
+        j) cursplit=${OPTARG};;
     esac
 done
 
 
-python run_mogp_experiments.py --exp $exp --proj $proj --kernel $kernel --run_by_seed $run_by_seed --seed $seed --tasknum $tasknum --alpha_scale $alpha_scale --minnum $minnum --expname $expname
+python run_mogp_experiments.py --exp $exp --proj $proj --kernel $kernel --run_by_seed $run_by_seed --seed $seed --tasknum $tasknum --alpha_scale $alpha_scale --minnum $minnum --expname $expname --cursplit $cursplit

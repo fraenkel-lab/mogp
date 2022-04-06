@@ -18,7 +18,7 @@ def incl_crit(data, subj_col, delta_col, min_data=3, jump_size=6, jump_col='alsf
     return data
 
 
-def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48.):
+def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48., anchor=True):
     """Convert pandas dataframe to data dictionary for MoGP input, including adding onset anchor datapoint"""
     data_dict = {}
 
@@ -31,8 +31,9 @@ def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48.)
     Y_std = Y_df.stack().std()
 
     # Add onset anchor value at symptom onset
-    X_df.insert(0, 0.0, 0.)
-    Y_df.insert(0, 0.0, max_feat * np.ones(data[subj_col].nunique()))
+    if anchor:
+        X_df.insert(0, 0.0, 0.)
+        Y_df.insert(0, 0.0, max_feat * np.ones(data[subj_col].nunique()))
 
     data_dict['SI'] = SI
     data_dict['XA'] = X_df.to_numpy()
@@ -42,10 +43,10 @@ def process_data_mogp_pre_norm(data, curfeat, subj_col, delta_col, max_feat=48.)
     return data_dict
 
 
-def process_data_mogp_pandas(data, curfeat, subj_col, delta_col, max_feat=48., min_data=3, jump_size=6, max_year_onset=7):
+def process_data_mogp_pandas(data, curfeat, subj_col, delta_col, max_feat=48., min_data=3, jump_size=6, max_year_onset=7, anchor=True):
     """Filter data with inclusion criteria, convert to data dictionary, and z-score normalize"""
     data = incl_crit(data=data, subj_col=subj_col, delta_col=delta_col, min_data=min_data, jump_size=jump_size, max_year_onset=max_year_onset)
-    data_dict = process_data_mogp_pre_norm(data=data, curfeat=curfeat, subj_col=subj_col, delta_col=delta_col, max_feat=max_feat)
+    data_dict = process_data_mogp_pre_norm(data=data, curfeat=curfeat, subj_col=subj_col, delta_col=delta_col, max_feat=max_feat, anchor=anchor)
     return data_dict
 
 
@@ -130,18 +131,17 @@ def split_train_test(data, project, train_size=0.6, random_seed=0):
 def data_full_alsfrst(df_time_merge, exp_path):
     """Experiment: Full ALSFRS-R"""
     Path.mkdir(exp_path, parents=True, exist_ok=True)
-
-    for proj in ['aals', 'proact', 'gtac', 'emory', 'ceft']:
+    proj_list = ['aals', 'proact', 'gtac', 'emory', 'ceft', 'nathist']
+    for proj in proj_list:
         df_time_proj = df_time_merge[df_time_merge['dataset'] == proj].copy()
         proj_dict = process_data_mogp_pandas(df_time_proj, 'alsfrst', 'subj_proj_id', 'Visit_Date', max_feat=48., min_data=3, jump_size=6, max_year_onset=7)
         joblib.dump(proj_dict, exp_path / 'data_{}_min3_alsfrst.pkl'.format(proj))
 
 
-def data_sparse(df_time_merge, exp_path):
+def data_sparse(df_time_merge, exp_path, proj_min_visits=10):
     """Experiment: Interpolation"""
     Path.mkdir(exp_path, parents=True, exist_ok=True)
-    proj_list = ['ceft', 'proact']
-    proj_min_visits = 10
+    proj_list = ['ceft', 'proact', 'aals', 'emory', 'nathist']
     sparse_list = [25, 50, 75]
 
     for proj in proj_list:
@@ -156,11 +156,10 @@ def data_sparse(df_time_merge, exp_path):
             joblib.dump(cur_sparse_mat, exp_path / 'data_{}_min{}_sparse_{}.pkl'.format(proj, proj_min_visits, sparse_time))
 
 
-def data_predict(df_time_merge, exp_path):
+def data_predict(df_time_merge, exp_path, proj_min_visits=4):
     """Experiment: Prediction"""
     Path.mkdir(exp_path, parents=True, exist_ok=True)
-    proj_list = ['ceft', 'proact']
-    proj_min_visits = 4
+    proj_list = ['ceft', 'proact', 'aals', 'emory', 'nathist']
     pred_lis = [0.25, 0.50, 1.0, 1.5, 2.0]
 
     for proj in proj_list:
@@ -184,8 +183,9 @@ def data_reference_by_split(data_ic, exp_path, random_seed=0):
     proact_test_dict = process_data_mogp_pre_norm(df_time_proact_test.copy(), 'alsfrst', 'subj_proj_id', 'Visit_Date', max_feat=48.)
     joblib.dump(proact_test_dict, exp_path / 'data_proact_min3_alsfrst_test_split_{}.pkl'.format(random_seed))
 
-    # all other data - test and train
-    for proj in ['aals', 'gtac', 'emory', 'ceft']:
+    all other data - test and train
+    proj_list  = ['aals', 'gtac', 'emory', 'ceft', 'nathist']
+    for proj in proj_list:
         df_time_proj_train, df_time_proj_test = split_train_test(data_ic, proj, train_size=0.6, random_seed=random_seed)
 
         proj_train_dict = process_data_mogp_pre_norm(df_time_proj_train.copy(), 'alsfrst', 'subj_proj_id', 'Visit_Date', max_feat=48.)

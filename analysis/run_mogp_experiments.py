@@ -163,7 +163,7 @@ def alsfrst_sparsity(project, kernel, num_iter=100, num_seeds=5, run_by_seed=Fal
                 curexp.run_experiment()
 
 
-def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=False, seed=None, multiprocess=False):
+def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=False, seed=None, multiprocess=False, cursplit=None):
     """Run MoGP for reference model benchmarking"""
     model_data_path = Path('data/model_data/3_reference_transfer')
     kernel = 'rbf'
@@ -173,10 +173,15 @@ def reference(project, num_iter=100, num_seeds=5, num_splits=5, run_by_seed=Fals
 
     if run_by_seed:
         assert (seed is not None)
-        for split in range(0, num_splits):
-            curexp.expname = 'alsfrst_train_split_{}'.format(split)
+        if cursplit is not None:
+            curexp.expname = 'alsfrst_train_split_{}'.format(cursplit)
             curexp.seed = seed
             curexp.run_experiment()
+        else:
+            for split in range(0, num_splits):
+                curexp.expname = 'alsfrst_train_split_{}'.format(split)
+                curexp.seed = seed
+                curexp.run_experiment()
 
     else:
         for cur_seed in range(0, num_seeds):
@@ -278,6 +283,7 @@ parser.add_argument("--norm_consistent", type=bool, default=None, choices=[True,
 parser.add_argument("--alpha_scale", type=float, default=1.0)
 parser.add_argument("--minnum", type=str)
 parser.add_argument("--expname", default=None)
+parser.add_argument("--cursplit", type=int, default=None)
 
 
 if __name__ == '__main__':
@@ -297,7 +303,7 @@ if __name__ == '__main__':
 
     elif args.exp == 'ref':
         reference(project=args.proj, num_iter=args.num_iter, num_seeds=args.num_seeds, num_splits=args.numsplit,
-                  run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi)
+                  run_by_seed=args.run_by_seed, seed=args.seed, multiprocess=args.multi, cursplit=args.cursplit)
 
     elif args.exp == 'alt':
         alternate_outcomes(task=args.task, num_iter=args.num_iter, run_by_seed=args.run_by_seed, seed=args.seed,
