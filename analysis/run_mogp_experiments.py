@@ -239,7 +239,7 @@ def nonals_domains(project, seed, kernel, num_iter=100):
     model_data_path = Path('data/model_data/5_nonals_domains/')
     minnum='min3'
 
-    assert (project=='ppmi')|(project=='adni'), 'non-implemented dataset, check project'
+    assert (project=='ppmi')|(project=='adni')|(project=='ppmifilt'), 'non-implemented dataset, check project'
     assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
 
     if (project=='ppmi')|(project=='ppmifilt'):
