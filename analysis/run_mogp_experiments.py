@@ -248,7 +248,8 @@ def nonals_domains(project, seed, kernel, num_iter=100):
         expname='adas13'
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname,
-                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed)
+                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed, onset_anchor=False) #no anchor used
+
     curexp.run_experiment()
 
 def roads(project, expname, seed, kernel, num_iter=100):
