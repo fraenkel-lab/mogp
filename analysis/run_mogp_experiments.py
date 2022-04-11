@@ -242,7 +242,7 @@ def nonals_domains(project, seed, kernel, num_iter=100):
     assert (project=='ppmi')|(project=='adni'), 'non-implemented dataset, check project'
     assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
 
-    if project=='ppmi':
+    if (project=='ppmi')|(project=='ppmifilt'):
         expname='updrs'
     elif project=='adni':
         expname='adas13'
@@ -267,7 +267,7 @@ def roads(project, expname, seed, kernel, num_iter=100):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals', 'roads'])
-parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'adni', 'nathist', 'alsse', 'eals'])
+parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'ppmifilt', 'adni', 'nathist', 'alsse', 'eals'])
 parser.add_argument("--kernel", default=None, choices=['rbf', 'linear'])
 parser.add_argument("--num_iter", type=int, default=100)
 parser.add_argument("--num_seeds", type=int, default=5)
