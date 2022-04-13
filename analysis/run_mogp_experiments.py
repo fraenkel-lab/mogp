@@ -239,13 +239,13 @@ def nonals_domains(project, seed, kernel, num_iter=100):
     model_data_path = Path('data/model_data/5_nonals_domains/')
     minnum='min3'
 
-    assert (project=='ppmi')|(project=='adni')|(project=='ppmifilt'), 'non-implemented dataset, check project'
+    # assert (project=='ppmi')|(project=='adni')|(project=='ppmifilt'), 'non-implemented dataset, check project'
     assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
 
     curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum,
                         num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed) #no anchor used
 
-    if (project=='ppmi')|(project=='ppmifilt'):
+    if (project=='ppmi')|(project=='ppmifilt')|(project=='ppmifiltupd'):
         curexp.expname='updrs'
         curexp.onset_anchor = False
     elif project=='adni':
@@ -270,7 +270,7 @@ def roads(project, expname, seed, kernel, num_iter=100):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--exp", required=True, choices=['full', 'predict', 'sparse', 'ref', 'alt', 'nonals', 'roads'])
-parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'ppmifilt', 'adni', 'nathist', 'alsse', 'eals'])
+parser.add_argument("--proj", default=None, choices=['aals', 'gtac', 'ceft', 'emory', 'proact', 'ppmi', 'ppmifilt', 'ppmifiltupd', 'adni', 'nathist', 'alsse', 'eals'])
 parser.add_argument("--kernel", default=None, choices=['rbf', 'linear'])
 parser.add_argument("--num_iter", type=int, default=100)
 parser.add_argument("--num_seeds", type=int, default=5)
