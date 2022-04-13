@@ -250,7 +250,7 @@ def nonals_domains(project, seed, kernel, num_iter=100):
         curexp.onset_anchor = False
     elif project=='adni':
         curexp.expname='adas13'
-        onset_anchor.onset_anchor = True # to avoid convergence warning
+        curexp.onset_anchor = True # to avoid convergence warning
 
     curexp.run_experiment()
 
