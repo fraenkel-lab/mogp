@@ -242,13 +242,15 @@ def nonals_domains(project, seed, kernel, num_iter=100):
     assert (project=='ppmi')|(project=='adni')|(project=='ppmifilt'), 'non-implemented dataset, check project'
     assert (seed is not None) and (kernel is not None), 'missing seed or kernel'
 
-    if (project=='ppmi')|(project=='ppmifilt'):
-        expname='updrs'
-    elif project=='adni':
-        expname='adas13'
+    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum,
+                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed) #no anchor used
 
-    curexp = Experiment(project=project, model_data_path=model_data_path, minnum=minnum, expname=expname,
-                        num_iter=num_iter, multiprocess=False, kernel=kernel, seed=seed, onset_anchor=False) #no anchor used
+    if (project=='ppmi')|(project=='ppmifilt'):
+        curexp.expname='updrs'
+        curexp.onset_anchor = False
+    elif project=='adni':
+        curexp.expname='adas13'
+        onset_anchor.onset_anchor = True # to avoid convergence warning
 
     curexp.run_experiment()
 
