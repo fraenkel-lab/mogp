@@ -183,7 +183,7 @@ def data_reference_by_split(data_ic, exp_path, random_seed=0):
     proact_test_dict = process_data_mogp_pre_norm(df_time_proact_test.copy(), 'alsfrst', 'subj_proj_id', 'Visit_Date', max_feat=48.)
     joblib.dump(proact_test_dict, exp_path / 'data_proact_min3_alsfrst_test_split_{}.pkl'.format(random_seed))
 
-    all other data - test and train
+    # all other data - test and train
     proj_list  = ['aals', 'gtac', 'emory', 'ceft', 'nathist']
     for proj in proj_list:
         df_time_proj_train, df_time_proj_test = split_train_test(data_ic, proj, train_size=0.6, random_seed=random_seed)
@@ -232,9 +232,80 @@ def data_alt_outcomes(df_time_merge, df_time_fvc, exp_path):
         joblib.dump(cur_dict_pandas_change, exp_path / 'data_{}_min3_{}.pkl'.format(proj, cat))
         joblib.dump(cur_dict_pandas_nochange, exp_path / 'data_{}_min3_{}_nochange.pkl'.format(proj, cat))
 
+def data_adni(df_ad, df_diag, df_onset, exp_path):
+    """Experiment: ADAS-Cog-13"""
+    df_ad_sub = df_ad.dropna(subset=['ADAS13','Years_bl']).copy()
+
+    # both minimum 3 visits and has AD diagnosis (exclude MCI/ HC)
+    min3lis = df_ad_sub.groupby('PTID').size()[df_ad_sub.groupby('PTID').size()>=3].index
+    ad_diaglis = df_diag[df_diag['DXCURREN']==3]['PTID']
+
+    df_ad_min3 = df_ad_sub[df_ad_sub['PTID'].isin(set(min3lis)&set(ad_diaglis))].copy()
+    df_ad_min3.dropna(subset=['Years_bl', 'PTID', 'ADAS13'], inplace=True)
+
+    df_ad_min3.sort_values(by=['PTID','Years_bl'], inplace=True)
+    df_ad_min3['Visit_Number']=df_ad_min3.groupby('PTID')['Years_bl'].rank("dense")
+
+    df_ad_min3['neg-ADAS13']=-df_ad_min3['ADAS13']
+
+    adni_dict = process_data_mogp_pre_norm(df_ad_min3, curfeat='neg-ADAS13', subj_col='PTID',  delta_col='Years_bl', anchor=False)
+
+    joblib.dump(adni_dict, exp_path / 'data_adni_min3_adas13.pkl')
+
+def data_ppmi(patient_status, mds, patient_diagnosis, exp_path):
+    """Experiment: MDSD-UPDRS-PartIII-OffMed"""
+    #Diagnosis history, SXDT = date of symptom, PDDXDT = date of Parkinson's disease diagnosis
+    #Filter for PD cohort and OFF medication (note that NaN is prior to initation of medications,
+    #All patients were required not to have started medication at enrollment)
+    pd_ids = patient_status[(patient_status.Subgroup=='Sporadic') & (patient_status.Comments.isnull())].PATNO.unique()
+    pd_mds = mds[np.isin(mds.PATNO, pd_ids) & (mds.PDSTATE != 'ON')]  #original inclusion
+    updated_pd_mds = pd_mds[(pd_mds.PDMEDDT.isnull()) | (pd.notna(pd_mds.PDMEDDT) & (pd_mds.PDSTATE == 'OFF'))][['PATNO', 'EVENT_ID', 'INFODT', 'NP3TOT', 'PDSTATE']]
+    pd_pd = patient_diagnosis[np.isin(patient_diagnosis.PATNO, pd_ids) & (patient_diagnosis.EVENT_ID == 'SC')]
+    df = updated_pd_mds.merge(pd_pd[['PATNO', 'SXDT', 'PDDXDT']],  how='left', on='PATNO')
+
+    # convert dates to usable numbers
+    ix_as_num = []
+    dx_as_num = []
+    sx_as_num = []
+
+    infodt = df.INFODT.str.split('/')
+    sxdt = df.SXDT.str.split('/')
+    pddt = df.PDDXDT.str.split('/')
+
+    for i in range(len(df)):
+        ix_as_num.append(float(infodt[i][0])/12. + float(infodt[i][1]))
+        dx_as_num.append(float(pddt[i][0])/12. + float(pddt[i][1]))
+        
+        try:
+            sx_as_num.append(float(sxdt[i][0])/12. + float(sxdt[i][1]))
+        except:
+            sx_as_num.append(np.NaN)
+            
+    df['Visit_date'] = ix_as_num
+    df['Diagnosis_date'] = dx_as_num
+    df['Symptom_date'] = sx_as_num
+
+    df['Time_since_diagnosis'] = df['Visit_date'] - df['Diagnosis_date']
+    df['Time_since_onset'] = df['Visit_date'] - df['Symptom_date']
+
+    # sort by inclusion criteria
+    min3_ppmi=df.groupby('PATNO').size()[df.groupby('PATNO').size()>=3].index
+    onset_10y=df.groupby('PATNO')['Time_since_onset'].min()[df.groupby('PATNO')['Time_since_onset'].min()<10].index
+    df_ppmi_min3 = df[df['PATNO'].isin(set(min3_ppmi)&set(onset_10y))].copy()
+    df_ppmi_min3.dropna(subset=['Time_since_onset', 'PATNO', 'NP3TOT'], inplace=True)
+
+    # # Clean duplicated visits
+    df_ppmi_min3 = df_ppmi_min3.groupby(['PATNO', 'Time_since_onset']).mean().reset_index()
+    df_ppmi_min3.sort_values(by=['PATNO', 'Time_since_onset'], inplace=True)
+    df_ppmi_min3['Visit_Number']=df_ppmi_min3.groupby('PATNO')['Time_since_onset'].rank("dense")
+
+    df_ppmi_min3['neg-NP3TOT']=-df_ppmi_min3['NP3TOT']
+
+    ppmi_dict = process_data_mogp_pre_norm(df_ppmi_min3, curfeat='neg-NP3TOT', subj_col='PATNO',  delta_col='Time_since_onset', anchor=False)
+    joblib.dump(ppmi_dict, exp_path / 'data_ppmi_min3_updrs.pkl')
 
 if __name__ == '__main__':
-    # Set intput/output paths
+    # # Set intput/output paths
     timeseries_alsfrsr_path = Path('data/processed_data/timeseries_all_alsfrsr.csv')
     timeseries_proact_fvcp_path = Path('data/processed_data/timeseries_proact_fvcp.csv')
 
@@ -255,3 +326,18 @@ if __name__ == '__main__':
     data_predict(df_time_merge_alsfrs, pred_path)
     data_reference(df_time_merge_alsfrs, ref_path)
     data_alt_outcomes(df_time_merge_alsfrs, df_time_proact_fvc, altclin_path)
+
+    # input/outputs for ADNI/PPMI:
+    nonals_path = Path('data/model_data/5_nonals_domains')
+    adni_path = 'data/raw_data/adni'
+    adni_ad = pd.read_csv(adni_path+'/Study Info/ADNIMERGE.csv')
+    adni_diag = pd.read_csv(adni_path + '/Diagnosis/DXSUM_PDXCONV_ADNIALL.csv')
+    adni_onset = pd.read_csv(adni_path + '/PTDEMOG.csv')
+    data_adni(adni_ad, adni_diag, adni_onset, nonals_path)
+
+    ppmi_path = 'data/raw_data/ppmi'
+    ppmi_patient_status = pd.read_excel(ppmi_path + '/Consensus_Committee_Analytic_Datasets_28OCT21.xlsx', sheet_name='PD')
+    ppmi_mds = pd.read_csv(ppmi_path + '/MDS_UPDRS_Part_III.csv')
+    ppmi_patient_diagnosis = pd.read_csv(ppmi_path + '/PD_Diagnosis_History.csv')
+    data_ppmi(ppmi_patient_status, ppmi_mds, ppmi_patient_diagnosis, nonals_path)
+
