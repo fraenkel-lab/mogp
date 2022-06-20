@@ -1,5 +1,6 @@
 # Project Directories
 analysis/data
+analysis/scratch
 mogpvenv
 example/test
 mogpvenv-3.7.3
@@ -8,7 +9,7 @@ test_py38
 analysis/reports
 example/mogp_reference_model.pkl
 example/mogp_reference_model.zip
-
+.idea/
 
 .DS_Store
 
