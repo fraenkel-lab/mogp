@@ -31,7 +31,7 @@ def calc_y_pred_spec_data(data_box, data_spec_box, i, model_type=None, mod=None)
 
 def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts, results_path=None, alphasc=None):
     """Calcluate rmse error between witheld data and mean function of model"""
-    assert model_type in ['slope', 'sigmoid', 'rbf', 'linear'], 'model type {} not implemented'.format(
+    assert model_type in ['slope', 'sigmoid', 'rbf', 'linear', 'gp', 'lme', 'quad'], 'model type {} not implemented'.format(
         model_type)  # all currently implemented baselines
 
     full_data = joblib.load(data_path / 'data_{}_{}_{}_full.pkl'.format(project, min_num, task_name))
@@ -54,6 +54,10 @@ def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts,
             else:
                 cur_model = get_map_model(results_path, 'model_{}_alphasc_{}'.format(name, alphasc)) #add alphasc flag
 
+            if cur_model is None:
+                print('try increased thresh: 15')
+                cur_model = get_map_model(results_path, 'model_{}'.format(name), thresh=15)
+
             assert len(cur_model.z) == len(cur_data['SI']), 'Number of participants in data and model do not match'
             assert model_type == cur_model.kernel, 'model type and model kernel do not match'
             num_clust = len(np.where(cur_model.allocmodel.Nk > 0)[0])
@@ -61,19 +65,19 @@ def calc_mogp_rmse(model_type, data_path, project, min_num, task_name, mat_opts,
             best_ll = cur_model.best_ll
             dict_name = '{}_seed_{}'.format(name, seed)
 
-        elif model_type in ['slope', 'sigmoid']:
+        elif model_type in ['slope', 'sigmoid', 'gp', 'quad']:
             cur_model = None
             num_clust = num_patients
             seed = np.nan
             best_ll = np.nan
             dict_name = name
 
-        # elif model_type in ['lme']:
-        #     cur_model = train_lme_model(cur_data)
-        #     num_clust = num_patients
-        #     seed = np.nan
-        #     best_ll = np.nan
-        #     dict_name = name
+        elif model_type in ['lme']:
+            cur_model = train_lme_model(cur_data)
+            num_clust = num_patients
+            seed = np.nan
+            best_ll = np.nan
+            dict_name = name
 
         for i in range(0, num_patients):
             y_real, y_pred_mean = calc_y_pred_spec_data(full_data, cur_data, i, model_type=model_type, mod=cur_model)
@@ -103,7 +107,7 @@ def gen_mod_obj_full(project, task_name, save=False):
         mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts,
                                      results_path=res_path)
 
-    for base_mod in ['slope', 'sigmoid']:
+    for base_mod in ['slope', 'sigmoid', 'gp', 'quad', 'lme']:
         mod_obj_dict[base_mod] = calc_mogp_rmse(base_mod, data_path, project, min_num, task_name, mat_opts)
 
     if save:
@@ -163,3 +167,11 @@ if __name__ == "__main__":
         _ = gen_mod_obj_full('ceft', 'predict', save=True)
         _ = gen_mod_obj_full('proact', 'sparse', save=True)
         _ = gen_mod_obj_full('proact', 'predict', save=True)
+
+        _ = gen_mod_obj_full('aals', 'predict', save=True)
+        _ = gen_mod_obj_full('emory', 'predict', save=True)
+
+        _ = gen_mod_obj_full('nathist', 'predict', save=True)
+        _ = gen_mod_obj_full('nathist', 'sparse', save=True)
+
+
