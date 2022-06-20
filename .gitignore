@@ -2,6 +2,12 @@
 analysis/data
 mogpvenv
 example/test
+mogpvenv-3.7.3
+mogp_website_backup
+test_py38
+example/mogp_reference_model.pkl
+example/mogp_reference_model.zip
+
 
 .DS_Store
 
