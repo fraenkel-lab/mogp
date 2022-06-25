@@ -188,11 +188,15 @@ def pred_single_gp(x_train, y_train, x_pred):
 ###########################################################################
 #######                MoGP Analysis Functions                      #######
 ###########################################################################
-def calc_slope_mogp_data(data):
+def calc_slope_mogp_data(data, include_anchor=False):
     """Calculate average slope of each patient from data dictionary (exclude onset anchor)"""
-    XA = data['XA'][:, 1:]  # Exclude anchor oonset
-    # YA_nonorm = (data['YA'][:, 1:] * data['Y_std']) + data['Y_mean']  # Scale data to original
-    YA = data['YA'][:, 1:]
+    if include_anchor:
+    	XA = data['XA']
+    	YA = data['YA']
+    else:
+	    XA = data['XA'][:, 1:]  # Exclude anchor oonset
+	    # YA_nonorm = (data['YA'][:, 1:] * data['Y_std']) + data['Y_mean']  # Scale data to original
+	    YA = data['YA'][:, 1:]
 
     df_slope = pd.DataFrame(columns=['SI', 'slope'])
     for i, si in enumerate(data['SI']):
@@ -331,7 +335,7 @@ def format_panel_axs(ax, alph_lab, num_pat, k_alph_flag, fontsize_numpat=20, fon
         ax.text(0.97, 0.95, alph_lab, transform=ax.transAxes, va='top', ha='right', fontsize=fontsize_alph)
     return ax
 
-def plot_mogp_panel(model, data, disp_clust=12, k_alph_flag=True, mogp_color='b', slope_color='r'):
+def plot_mogp_panel(model, data, disp_clust=12, k_alph_flag=True, mogp_color='b', slope_color='r', add_full_slope=False):
     """Plot full panel, including calculating slope per cluster"""
     fig, axs = plt.subplots(math.ceil(disp_clust/4), 4, figsize=(20, 3*(math.ceil(disp_clust/4))), sharex=True, sharey=True)
 
@@ -347,6 +351,9 @@ def plot_mogp_panel(model, data, disp_clust=12, k_alph_flag=True, mogp_color='b'
         
         axs.flat[i], num_pat = plot_mogp_by_clust(axs.flat[i], model, data, k, data_col='k', model_col=mogp_color) 
         estim_diff = plot_slope_by_clust(axs.flat[i], model, k, slope_col=slope_color) 
+        if add_full_slope:
+        	max_x = model.obsmodel[k].X.max()
+        	_ = plot_slope_by_clust(axs.flat[i], model, k, slope_col='g', upper_bound=max_x) 
         axs.flat[i] = format_panel_axs(axs.flat[i], k_alph, num_pat, k_alph_flag)
         
         df_disp_clust = df_disp_clust.append({'k': k, 'k_alph': k_alph, 'estim_diff': estim_diff}, ignore_index=True)
