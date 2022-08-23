@@ -19,6 +19,8 @@ Tutorials for model usage can be found here:
 We also provide a pre-trained reference model for ALSFRS-R scores that can be downloaded here: http://fraenkel.mit.edu/mogp/
 
 ## Installation
+MoGP currently requires `Python 3.7.3` due to narrow package dependencies.
+
 Install using `pip`:
 ```
 pip install mogp
