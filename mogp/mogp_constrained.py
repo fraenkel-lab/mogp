@@ -8,6 +8,9 @@ import joblib
 import numpy as np
 import numpy.random as npr
 from sklearn.cluster import KMeans
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.utils.testing import ignore_warnings
+
 from scipy.special import logsumexp as lse
 from mogp.obsmodel import GPobs
 from mogp.allocmodel import DPmix
@@ -175,6 +178,12 @@ class MoGP_constrained:
         logger.info('Saved Model: {}'.format((self.savepath / "{}_{}.pkl".format(self.savename, file_suffix)).resolve()))
         self._reset_normalizer()
 
+    @ignore_warnings(category=ConvergenceWarning)
+    def _k_means_init(self, init_K, x_data):
+        # if fewer than specified init K clusters are found, then use largest number of clusters returned by kmeans
+        kmeans = KMeans(n_clusters=init_K, random_state=self.rand_seed).fit(x_data)
+        return kmeans
+
     def initialize_sampler(self, init_K, onset_anchor):
         """
         Initialize sampler with clusters using k-means clustering
@@ -191,9 +200,12 @@ class MoGP_constrained:
         else:
             x_data = self.X[:, 0].reshape(-1, 1)
 
-        kmeans = KMeans(n_clusters=init_K, random_state=self.rand_seed).fit(x_data)
+        # if fewer than specified init K clusters are found, then use largest number of clusters returned by kmeans
+        # kmeans = KMeans(n_clusters=init_K, random_state=self.rand_seed).fit(x_data)
+        kmeans = self._k_means_init(init_K, x_data)
+
         self.z = kmeans.labels_
-        for k in np.arange(init_K):
+        for k in np.arange(len(np.unique(kmeans.labels_))):
             Xk = self.X[self.z == k]
             Yk = self.Y[self.z == k]
             self.obsmodel[k] = GPobs(Xk[~np.isnan(Xk)].reshape(-1, 1), Yk[~np.isnan(Yk)].reshape(-1, 1),
