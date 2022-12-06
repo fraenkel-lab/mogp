@@ -33,8 +33,11 @@ cd mogp/
 python setup.py install --user
 ```
 ## Relevant Citations
+Full article can be found here:
+Divya Ramamoorthy, Kristen Severson, Soumya Ghosh, Karen Sachs, Answer ALS, Jonathan D. Glass, Christina N. Fournier, Pooled Resource Open-Access ALS Clinical Trials Consortium, ALS/MND Natural History Consortium, Todd M. Herrington, James D. Berry, Kenney Ng & Ernest Fraenkel. Identifying patterns in amyotrophic lateral sclerosis progression from sparse longitudinal data. *Nat Comput Sci* **2**, 605–616 (2022). https://doi.org/10.1038/s43588-022-00299-w
 
-Divya Ramamoorthy, Kristen Severson, Soumya Ghosh, Karen Sachs, Answer ALS, Jonathan D. Glass, Christina N. Fournier, Pooled Resource Open-Access ALS Clinical Trials Consortium, James Berry, Kenney Ng, Ernest Fraenkel. Identifying Patterns of ALS Progression from Sparse Longitudinal Data. *medRxiv. [doi: 10.1101/2021.05.13.21254848](https://doi.org/10.1101/2021.05.13.21254848)*
+Summary article can be found here:
+Divya Ramamoorthy & Ernest Fraenkel. Machine learning approach finds nonlinear patterns of neurodegenerative disease progression. *Nat Comput Sci* **2**, 565–566 (2022). https://doi.org/10.1038/s43588-022-00300-6
 
 ## Changelog
 2022-12-05: Released mogp==1.0.0 - updated dependencies for python package; now requires python >=3.8
