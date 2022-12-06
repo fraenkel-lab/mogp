@@ -19,7 +19,7 @@ Tutorials for model usage can be found here:
 We also provide a pre-trained reference model for ALSFRS-R scores that can be downloaded here: http://fraenkel.mit.edu/mogp/
 
 ## Installation
-MoGP currently requires `Python 3.7.3` due to narrow package dependencies.
+MoGP currently requires >=`Python 3.8`.
 
 Install using `pip`:
 ```
@@ -35,3 +35,6 @@ python setup.py install --user
 ## Relevant Citations
 
 Divya Ramamoorthy, Kristen Severson, Soumya Ghosh, Karen Sachs, Answer ALS, Jonathan D. Glass, Christina N. Fournier, Pooled Resource Open-Access ALS Clinical Trials Consortium, James Berry, Kenney Ng, Ernest Fraenkel. Identifying Patterns of ALS Progression from Sparse Longitudinal Data. *medRxiv. [doi: 10.1101/2021.05.13.21254848](https://doi.org/10.1101/2021.05.13.21254848)*
+
+## Changelog
+2022-12-05: Released mogp==1.0.0 - updated dependencies for python package; now requires python >=3.8

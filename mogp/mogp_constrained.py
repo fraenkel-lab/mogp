@@ -8,8 +8,8 @@ import joblib
 import numpy as np
 import numpy.random as npr
 from sklearn.cluster import KMeans
-from sklearn.exceptions import ConvergenceWarning
-from sklearn.utils.testing import ignore_warnings
+# from sklearn.exceptions import ConvergenceWarning
+# from sklearn.utils.testing import ignore_warnings
 
 from scipy.special import logsumexp as lse
 from mogp.obsmodel import GPobs
@@ -178,10 +178,10 @@ class MoGP_constrained:
         logger.info('Saved Model: {}'.format((self.savepath / "{}_{}.pkl".format(self.savename, file_suffix)).resolve()))
         self._reset_normalizer()
 
-    @ignore_warnings(category=ConvergenceWarning)
+    # @ignore_warnings(category=ConvergenceWarning)
     def _k_means_init(self, init_K, x_data):
         # if fewer than specified init K clusters are found, then use largest number of clusters returned by kmeans
-        kmeans = KMeans(n_clusters=init_K, random_state=self.rand_seed).fit(x_data)
+        kmeans = KMeans(n_clusters=init_K, random_state=self.rand_seed, n_init=10).fit(x_data)
         return kmeans
 
     def initialize_sampler(self, init_K, onset_anchor):
